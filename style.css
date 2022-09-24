@@ -7,7 +7,8 @@ html {
   padding: 0;
   list-style: none;
   text-decoration: none;
-  font-family: 'Montserrat', sans-serif;
+  font-family:'Rimouski', sans-serif;
+  font-style: normal;
 }
 
 body {
@@ -55,7 +56,6 @@ canvas {
   height: 85%;
   display: table-cell;
   vertical-align: middle;
-  font-family: 'Montserrat', sans-serif;
   font-size: 32px;
   font-weight: 750;
 }
@@ -81,15 +81,14 @@ canvas {
   vertical-align: middle;
   height: 100%;
   color: white;
-  font-family: 'Monstserrat', sans-serif;;
-  font-size: 16px;
+  font-size: 20px;
   cursor: pointer;
 }
 
 /*--------Content---------*/
 .content{
   width: 100%;
-  height: 700px;
+  height: 770px;
 }
 
 .nav {
@@ -97,6 +96,18 @@ canvas {
   width: 30%;
   height: 100%;
   float: left;
+}
+
+.nav ul {
+  margin-left: 120px;
+  margin-top: 400px;
+}
+
+.nav ul a {
+  font-weight: 600;
+  font-size: 35px;
+  line-height: 58px;
+  color: #FFFFFF;
 }
 
 .main{
@@ -123,11 +134,10 @@ canvas {
 #graph_screen {
   height: 95%;
   background: whitesmoke;
-  width: 95%;
+  width: 97%;
   margin: 20px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   border-radius: 5px;
-  margin-left: 35px;
 }
 
 /*-------footer---------*/
