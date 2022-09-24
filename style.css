@@ -92,21 +92,21 @@ canvas {
   height: 700px;
 }
 
-.main {
+.nav {
   background-color: #575674;
   width: 30%;
   height: 100%;
   float: left;
 }
 
-.sub{
+.main{
   background-color: #777A90;
   width: 70%;
   height: 100%;
   overflow: hidden;
 }
 
-#home {
+#close_up_screen {
   height: 40%;
   background: whitesmoke;
   width: 70%;
@@ -120,7 +120,7 @@ canvas {
 }
 
 
-#update {
+#graph_screen {
   height: 95%;
   background: whitesmoke;
   width: 95%;
@@ -136,59 +136,7 @@ canvas {
   margin: auto;
   position: relative;
   width: 100%;
-  height: 10%;
+  height: 80px;
   background-color: #494B5E;
 }
 
-.footer-one {
-  width: 33%;
-}
-
-.inner-footer-one {
-  margin: 25px;
-  display: flex;
-  flex-direction: column;
-}
-
-.inner-footer-one a{
-  font-size: 20px;
-  color: white;
-  margin: 5px;
-}
-
-.footer-two {
-  width: 33%;
-}
-.inner-footer-two {
-  text-align: center;
-  margin: 20px;
-  margin-left: 120px;
-  display: flex;
-  flex-direction: column;
-}
-
-.inner-footer-two a {
-  text-align: center;
-  font-size: 20px;
-  color: white;
-  margin: 5px;
-}
-
-.footer-three {
-  width: 33%;
-}
-
-.inner-footer-three {
-  position: absolute;
-  right: 0px;
-  margin: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.inner-footer-three a {
-  text-align: right;
-  font-size: 20px;
-  color: white;
-  margin: 5px;
-}
