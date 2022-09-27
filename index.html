@@ -32,7 +32,8 @@
     <ul>
       <div class="options">Images</div>
       <div class="hide">
-        <li class="hidden-options">Load Image</li>
+        <input type="file" id="image-input" accept="image/jpeg, image/png, image/jpg" hidden="hidden"/>
+        <li onclick="LoadNewImage()" class="hidden-options">Load Image</li>
       </div>
       <div class="options">Axes</div>
       <div class="hide">
@@ -40,7 +41,7 @@
       </div>
       <div class="options">Datasets</div>
       <div class="hide">
-        <li onclick="popup.show('LoadNewImage');" class="hidden-options">Add Dataset</li>
+        <li class="hidden-options">Add Dataset</li>
         <li class="hidden-options">Export All Data</li>
       </div>
       <div class="options">Measurements</div>
@@ -52,6 +53,9 @@
   
   <div class = "main">
     <div id = "graph-screen">
+      <div id = "image-container">
+        <img id = "actual-image" src="">
+      </div>
     </div>
   </div>
 </div>
