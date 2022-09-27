@@ -32,7 +32,7 @@ canvas {
 /*--------Header-------*/
 .header {
   width: 100%;
-  height: 80px;
+  height: 10vh;
   margin: auto;
   display: block;
   background-color: #494B5E;
@@ -60,23 +60,19 @@ canvas {
   font-weight: 750;
 }
 
-.navigation {
+.header-navigation {
   float: right;
   height: 100%;
 }
 
-.navigation a {
+.header-navigation a {
   height: 100%;
   display: table;
   float: left;
   padding: 0px 20px;
 }
 
-.navigation a:last-child{
-  padding-right: 0;
-}
-
-.navigation a li {
+.header-navigation a li {
   display: table-cell;
   vertical-align: middle;
   height: 100%;
@@ -88,24 +84,24 @@ canvas {
 /*--------Content---------*/
 .content{
   width: 100%;
-  height: 770px;
+  height: 80vh;
 }
 
-.nav {
+.sidebar-navigation {
   background-color: #575674;
   width: 30%;
   height: 100%;
   float: left;
 }
 
-.nav ul {
-  margin-left: 120px;
-  margin-top: 400px;
+.sidebar-navigation ul {
+  margin-left: 20%;
+  margin-top: sidebar-navigation
 }
 
-.nav ul a {
+.sidebar-navigation ul a {
   font-weight: 600;
-  font-size: 35px;
+  font-size: 30px;
   line-height: 58px;
   color: #FFFFFF;
 }
@@ -117,13 +113,14 @@ canvas {
   overflow: hidden;
 }
 
-#close_up_screen {
+#close-up-screen {
   height: 40%;
   background: whitesmoke;
   width: 70%;
-  margin-right: 40px;
-  margin-top: 40px;
-  margin-left: 80px;
+  margin-right: 10%;
+  margin-top: 10%;
+  margin-left: 15%;
+  margin-bottom: 10%;
   border-radius: 5px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   float: left;
@@ -131,11 +128,12 @@ canvas {
 }
 
 
-#graph_screen {
-  height: 95%;
+#graph-screen {
+  height: 93%;
   background: whitesmoke;
-  width: 97%;
-  margin: 20px;
+  width: 90%;
+  margin: 3%;
+  margin-left: 5%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   border-radius: 5px;
 }
@@ -146,7 +144,7 @@ canvas {
   margin: auto;
   position: relative;
   width: 100%;
-  height: 80px;
+  height: 10vh;
   background-color: #494B5E;
 }
 
