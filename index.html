@@ -30,10 +30,23 @@
     <div id = "close-up-screen">
     </div>
     <ul>
-      <a href="#"><li>Images</li></a>
-      <a href="#"><li>Axes</li></a>
-      <a href="#"><li>Datasets</li></a>
-      <a href="#"><li>Measurements</li></a>
+      <div class="options">Images</div>
+      <div class="hide">
+        <li class="hidden-options">Load Image</li>
+      </div>
+      <div class="options">Axes</div>
+      <div class="hide">
+        <li class="hidden-options">Add calibration</li>
+      </div>
+      <div class="options">Datasets</div>
+      <div class="hide">
+        <li onclick="popup.show('LoadNewImage');" class="hidden-options">Add Dataset</li>
+        <li class="hidden-options">Export All Data</li>
+      </div>
+      <div class="options">Measurements</div>
+      <div class="hide">
+        <li class="hidden-options">Distance</li>
+      </div>
     </ul>
   </div>
   

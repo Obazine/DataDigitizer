@@ -85,7 +85,7 @@ canvas {
 /*--------Content---------*/
 .content{
   width: 100%;
-  height: 80vh;
+  height: 85vh;
 }
 
 .sidebar-navigation {
@@ -100,14 +100,32 @@ canvas {
   margin-top: sidebar-navigation
 }
 
-.sidebar-navigation ul a {
-  font-weight: 600;
-  font-size: 30px;
-  line-height: 58px;
+.options {
+  cursor: pointer;
+  font-weight: 550;
+  font-size: 25px;
+  line-height: 50px;
   color: #FFFFFF;
 }
 
-.sidebar-navigation ul a :hover{
+.hide{
+  display: none;
+  font-weight: 250;
+  font-size: 20px;
+  line-height: 40px;
+  color: #ffffffc4;
+}
+
+.options:hover + .hide {
+  display: block;
+} 
+
+.hide:hover {
+  display: block;
+  cursor: pointer;
+}
+
+.hidden-options:hover {
   font-size: 105%;
 }
 
@@ -146,7 +164,7 @@ canvas {
   margin: auto;
   position: relative;
   width: 100%;
-  height: 10vh;
+  height: 5vh;
   background-color: #494B5E;
 }
 
