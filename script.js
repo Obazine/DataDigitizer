@@ -33,13 +33,11 @@ class Particle {
         this.size = 10;
     }
 
-    // Update movement by adding velocity
     update() {
         this.pos.add(this.vel);
         this.edges();
     }
 
-    // Draw single particle
     draw() {
         noStroke();
         fill('rgba(255,255,255,0.5)');
@@ -47,7 +45,6 @@ class Particle {
     }
 
 
-    // Detect edges
     edges() {
         if(this.pos.x < 0 || this.pos.x > width) {
             this.vel.x *= -1;
@@ -57,7 +54,6 @@ class Particle {
         }
     }
 
-    // Connect particles
     checkParticles(particles) {
         particles.forEach(particle => {
             const d = dist(this.pos.x, this.pos.y, particle.pos.x, particle.pos.y)
