@@ -103,7 +103,7 @@ canvas {
 .options {
   cursor: default;
   font-weight: 550;
-  font-size: 25px;
+  font-size: smaller;
   line-height: 50px;
   color: #FFFFFF;
 }
@@ -111,7 +111,7 @@ canvas {
 .hide{
   display: none;
   font-weight: 250;
-  font-size: 20px;
+  font-size: smaller;
   line-height: 40px;
   color: #ffffffc4;
 }

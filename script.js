@@ -67,20 +67,6 @@ class Particle {
 }
 
 const realFileBtn = document.getElementById("image-input");
-const image_input = document.querySelector("#image-input");
-var uploaded_image = "";
 function LoadNewImage() {
     realFileBtn.click();
 }
-
-image_input.addEventListener("change", function() {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-        const base64String = reader.result.replace('data:', '').replace(/^.+,/, '');
-        localStorage.setItem('wallpaper', base64String);
-    });
-    reader.readAsDataURL(this.files[0]);
-    var dataImage = localStorage.getItem('wallpaper');
-    bannerImg = document.getElementById('actual-image');
-    bannerImg.src = "data:image/png;base64," +dataImage
-})
