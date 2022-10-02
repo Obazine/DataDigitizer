@@ -16,7 +16,7 @@ body {
     margin: 0 auto;
 }
 
-canvas {
+#particles {
   width: 100%;
   height: 100%;
   display: block;
@@ -170,6 +170,12 @@ canvas {
   max-height:100%;
   margin: auto;
   object-fit: contain;
+}
+
+
+#canvasOutput {
+	width:100%;
+	height:100%;
 }
 
 #graph-screen :hover {

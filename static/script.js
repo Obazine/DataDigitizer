@@ -1,12 +1,12 @@
+//particle background creation
 const particles = [];
-
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
 }
 
 function setup() {
     createCanvas(window.outerWidth, window.outerHeight);
-
+    canvas.id = "particles"
     const particlesLength = Math.floor(window.innerWidth / 10);
 
     for(let i = 0; i < particlesLength; i++) {
@@ -25,11 +25,8 @@ function draw() {
 
 class Particle {
     constructor() {
-        // position
         this.pos = createVector(random(width), random(height));
-        // velocity
         this.vel = createVector(random(-2, 2), random(-2, 2));
-        // size
         this.size = 10;
     }
 
@@ -67,6 +64,7 @@ class Particle {
 }
 
 
+//image processing
 const realFileBtn = document.getElementById("image-input");
 function LoadNewImage() {
     realFileBtn.click();
@@ -79,8 +77,10 @@ inputElement.addEventListener('change', (e) => {
 }, false);
 imgElement.onload = function () {
     let mat = cv.imread(imgElement);
+    let dst = new cv.Mat();
     cv.cvtColor(mat, mat, cv.COLOR_RGB2GRAY, 0);
-    cv.Canny(mat, mat, 50, 100, 3, false);
+    cv.adaptiveThreshold(mat, dst, 200, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 3, 2);
     cv.imshow('canvasOutput', mat);
     mat.delete();
+    dst.delete();
 };
