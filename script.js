@@ -66,7 +66,21 @@ class Particle {
     }
 }
 
+
 const realFileBtn = document.getElementById("image-input");
 function LoadNewImage() {
     realFileBtn.click();
 }
+
+let imgElement = document.getElementById('actual-image');
+let inputElement = document.getElementById('image-input');
+inputElement.addEventListener('change', (e) => {
+    imgElement.src = URL.createObjectURL(e.target.files[0]);
+}, false);
+imgElement.onload = function () {
+    let mat = cv.imread(imgElement);
+    cv.cvtColor(mat, mat, cv.COLOR_RGB2GRAY, 0);
+    cv.Canny(mat, mat, 50, 100, 3, false);
+    cv.imshow('canvasOutput', mat);
+    mat.delete();
+};
