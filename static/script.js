@@ -72,21 +72,19 @@ function LoadNewImage() {
 
 var img = document.getElementById("graph-image")
 var preview = document.querySelector(".zoom-preview");
-  
-        //calculating the ratio by which we want to magnify the image
-        //you can increase or decrease it according to your requirement
-        var x = preview.offsetWidth / 100;
-        var y = preview.offsetHeight / 100;
-  
-        img.addEventListener("mousemove", (e) => {
-            preview.style.backgroundImage = `url(${img.src})`;
-            preview.style.backgroundSize = img.width * x + 
-              "px " + img.height * y + "px";
-            var posX = e.offsetX - 50;
-            var posY = e.offsetY - 50;
-            preview.style.backgroundPosition = "-" + posX * x + 
-              "px -" + posY * y + "px";
-        });
-        img.addEventListener("mouseout", () => {
-            preview.style.backgroundImage = "none";
-        });
+
+var x = preview.offsetWidth / 100;
+var y = preview.offsetHeight / 100;
+
+img.addEventListener("mousemove", (e) => {
+    preview.style.backgroundImage = `url(${img.src})`;
+    preview.style.backgroundSize = img.width * x + 
+      "px " + img.height * y + "px";
+    var posX = e.offsetX - 50;
+    var posY = e.offsetY - 50;
+    preview.style.backgroundPosition = "-" + posX * x + 
+        "px -" + posY * y + "px";
+});
+img.addEventListener("mouseout", () => {
+    preview.style.backgroundImage = "none";
+});
