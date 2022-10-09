@@ -65,10 +65,6 @@ class Particle {
 
 
 //image processing
-const realFileBtn = document.getElementById("image-input");
-function LoadNewImage() {
-    realFileBtn.click();
-}
 
 var img = document.getElementById("graph-image")
 var preview = document.querySelector(".zoom-preview");
