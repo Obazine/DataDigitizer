@@ -1,5 +1,6 @@
 from flask import Flask, flash, request, redirect, url_for, render_template
 import os
+from program import testFunc, testFunc2
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -18,7 +19,7 @@ def upload_image():
     file = request.files['file']
     filename = secure_filename(file.filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    flash('Image successfully uploaded and displayed below')
+    testFunc2()
     return render_template('index.html', filename=filename)
 
 
