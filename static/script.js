@@ -63,24 +63,41 @@ class Particle {
     }
 }
 
-
-//image processing
-
-var img = document.getElementById("graph-image")
+//Magnifier Glass
+var mainImg = document.getElementById("graph-image");
 var preview = document.querySelector(".zoom-preview");
 
 var x = preview.offsetWidth / 100;
 var y = preview.offsetHeight / 100;
 
-img.addEventListener("mousemove", (e) => {
-    preview.style.backgroundImage = `url(${img.src})`;
-    preview.style.backgroundSize = img.width * x + 
-      "px " + img.height * y + "px";
+mainImg.addEventListener("mousemove", (e) => {
+    preview.style.backgroundImage = `url(${mainImg.src})`;
+    preview.style.backgroundSize = mainImg.width * x + 
+      "px " + mainImg.height * y + "px";
     var posX = e.offsetX - 50;
     var posY = e.offsetY - 50;
     preview.style.backgroundPosition = "-" + posX * x + 
         "px -" + posY * y + "px";
 });
-img.addEventListener("mouseout", () => {
+mainImg.addEventListener("mouseout", () => {
     preview.style.backgroundImage = "none";
 });
+
+
+//Axes Callibration
+callibrateAxesActivated = false;
+axesCoords = []
+function callibrateAxes(){
+    callibrateAxesActivated = true;
+};
+function recordCoords(event) {
+    if(axesCoords.length < 4 && callibrateAxesActivated)
+    {
+        var x = event.clientX;
+        var y = event.clientY;  
+        tempCoord = [x, y]
+        axesCoords.push(tempCoord)
+        var coords = "X coords: " + x + ", Y coords: " + y;
+        console.log(coords);
+    };
+};

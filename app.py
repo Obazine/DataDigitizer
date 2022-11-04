@@ -18,7 +18,6 @@ def upload_image():
     file = request.files['file']
     filename = secure_filename(file.filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    testFunc2()
     return render_template('index.html', filename=filename)
 
 

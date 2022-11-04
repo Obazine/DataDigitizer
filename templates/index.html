@@ -32,7 +32,7 @@
     </div>
     <ul>
       <div class="options">Images</div>
-      <div class="hide">
+      <div class="hidden">
         <form method="post" action="/" enctype="multipart/form-data">
           <dl>
               <p>
@@ -45,24 +45,25 @@
         </form>
       </div>
       <div class="options">Axes</div>
-      <div class="hide">
-        <li class="hidden-options">Add calibration</li>
+      <div class="hidden">
+        <li onclick="callibrateAxes()" class="hidden-options">Axes calibration</li>
+
       </div>
       <div class="options">Datasets</div>
-      <div class="hide">
+      <div class="hidden">
         <li class="hidden-options">Add Dataset</li>
         <li class="hidden-options">Export All Data</li>
       </div>
       <div class="options">Measurements</div>
-      <div class="hide">
+      <div class="hidden">
         <li class="hidden-options">Distance</li>
       </div>
     </ul>
   </div>
   <div class = "main">
     <div id = "graph-screen">
-      <div id = "image-container">
-        <img id ="graph-image" src="{{ url_for('display_image', filename=filename) }}">
+      <div id = "image-container">       
+        <img id ="graph-image" onclick="recordCoords(event)" src="{{ url_for('display_image', filename=filename) }}">
       </div>
     </div>
   </div>
