@@ -90,7 +90,10 @@ axesCoords = []
 function callibrateAxes(){
     callibrateAxesActivated = true;
 };
+
 function recordCoords(event) {
+    const URL = '/get-coordinates'
+    const xhr = new XMLHttpRequest();
     if(axesCoords.length < 4 && callibrateAxesActivated)
     {
         var x = event.clientX;
@@ -100,4 +103,12 @@ function recordCoords(event) {
         var coords = "X coords: " + x + ", Y coords: " + y;
         console.log(coords);
     };
+    if(axesCoords.length == 4 && callibrateAxesActivated)
+    {
+        sender = JSON.stringify(axesCoords)
+        xhr.open('POST', URL);
+        xhr.send(sender);
+        callibrateAxesActivated = false;
+    }
 };
+
