@@ -6,6 +6,9 @@
   <meta name = "viewport" content = "width=device-width, initial-scale=1.0" />
   <meta http-equiv = "X-UA-Compatible" content = "ie = edge" />
   <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.js"
+          integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+          crossorigin="anonymous"></script>
   <link rel ="stylesheet" media ="screen" href ="\static\style.css"/>
 </head>
 <body>
@@ -25,6 +28,22 @@
   </div>
 </div>
 
+<div class="form-popup" id="axes-form">
+  <form  method="post" class="form-container">
+    <h2>Please enter the values below</h2>
+    <label for="min-x">Min-X</label>
+    <input type="number" placeholder="Enter minimum X value" name = "min-x" id="min-x" required>
+    <label for="max-x">Max-X</label>
+    <input type="number" placeholder="Enter maximum X value" name = "max-x" id="max-x" required>
+    <label for="min-y">Min-Y</label>
+    <input type="number" placeholder="Enter minimum Y value" name = "min-y" id="min-y" required>
+    <label for="max-y">Max-Y</label>
+    <input type="number" placeholder="Enter maximum Y value" name = "max-y" id="max-y" required>
+    <button type="submit" class="btn">Submit</button>
+    <button type="button" class="btn cancel" onClick="closeForm()">Close</button>
+  </form>
+</div>
+
 <div class = "content">
   <div class = "sidebar-navigation">
     <div class = "zoom-preview">
@@ -36,7 +55,7 @@
         <form method="post" action="/" enctype="multipart/form-data">
           <dl>
               <p>
-                  <input type="file" accept="image/*" name="file" class="form-control" autocomplete="off" accept="image/*"> 
+                  <input type="file" name="file" class="form-control" autocomplete="off" accept="image/*"> 
               </p>
           </dl>
           <p>

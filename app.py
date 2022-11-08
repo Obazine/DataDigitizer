@@ -9,12 +9,8 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'static/uploads/'
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-def array(list):
-    string = ""
-    for x in list:
-        string+= x
-    return string
+axesValues = []
+axesList = []
 
 @app.route('/')
 def home():
@@ -27,7 +23,6 @@ def upload_image():
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return render_template('index.html', filename=filename)
 
-
 @app.route('/display/<filename>')
 def display_image(filename):
     return redirect(url_for('static', filename='uploads/' + filename), code=301)
@@ -39,3 +34,13 @@ def thisRoute():
     axesList = axesInfo.strip('][').split(',')
     print(axesList)
     return render_template("index.html")
+
+@app.route('/handle_data', methods =["GET", "POST"])
+def handle_data():
+    axesValues.append(request.form.get("minX"))
+    axesValues.append(request.form.get("maxX"))
+    axesValues.append(request.form.get("minY"))
+    axesValues.append(request.form.get("maxY"))
+    print(axesValues)
+    return render_template("index.html")
+

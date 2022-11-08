@@ -109,6 +109,35 @@ function recordCoords(event) {
         xhr.open('POST', URL);
         xhr.send(sender);
         callibrateAxesActivated = false;
+        openForm();
     }
 };
 
+function openForm() {
+    document.getElementById("axes-form").style.display = "block";
+}
+
+function closeForm() {
+    document.getElementById("axes-form").style.display = "none";
+}
+
+$(document).on('submit','#axes-form',function(e)
+{
+    console.log('hello');
+    e.preventDefault();
+    $.ajax({
+        type:'POST',
+        url:'/handle_data',
+        data:{
+        minX:$("#min-x").val(),
+        maxX:$("#max-x").val(),
+        minY:$("#min-y").val(),
+        maxY:$("#max-y").val()
+    },
+    success:function()
+    {
+        alert('saved');
+        closeForm();
+    }
+    })
+});
