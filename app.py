@@ -44,3 +44,18 @@ def handle_data():
     print(axesValues)
     return render_template("index.html")
 
+@app.route('/get_point', methods=['GET', 'POST'])
+def get_point():
+    pointInfo = request.data.decode()
+    print(pointInfo)
+    calculatePointvalue(pointInfo)
+    return render_template("index.html")
+
+def calculatePointvalue(pointAxes):
+    pointAxes = pointAxes.strip('[')
+    pointAxes = pointAxes.strip(']')
+    pointData = pointAxes.split(',')
+    pointX = pointData[0]
+    pointY = pointData[1]
+    print(pointX)
+    print(pointY)

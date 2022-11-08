@@ -85,8 +85,8 @@ mainImg.addEventListener("mouseout", () => {
 
 
 //Axes Callibration
-callibrateAxesActivated = false;
-axesCoords = []
+let callibrateAxesActivated = false;
+let axesCoords = []
 function callibrateAxes(){
     callibrateAxesActivated = true;
 };
@@ -110,16 +110,28 @@ function recordCoords(event) {
         xhr.send(sender);
         callibrateAxesActivated = false;
         openForm();
+    };
+    if(axesCoords.length == 4 && getPointValueActivated)
+    {
+        var x = event.clientX;
+        var y = event.clientY;  
+        tempCoord = [x, y]
+        sender = JSON.stringify(tempCoord)
+        xhr.open('POST', '/get_point');
+        xhr.send(sender);
+        getPointValueActivated = false;
+        alert("complete");
     }
 };
 
+//Axes data form input function
 function openForm() {
     document.getElementById("axes-form").style.display = "block";
-}
+};
 
 function closeForm() {
     document.getElementById("axes-form").style.display = "none";
-}
+};
 
 $(document).on('submit','#axes-form',function(e)
 {
@@ -141,3 +153,16 @@ $(document).on('submit','#axes-form',function(e)
     }
     })
 });
+
+//Get Point Value Function
+let getPointValueActivated = false
+function getPointValue()
+{
+    getPointValueActivated = true
+    if (axesCoords.length != 4)
+    {
+        alert("Please callibrate axes first");
+        getPointValueActivated = false;
+    };
+    
+};
