@@ -219,6 +219,13 @@ body {
   display:flex;
 }
 
+#display-area {
+  width: 15%;
+  top: 0px;
+  right: 0px;
+  position: absolute;
+}
+
 #graph-image {
   max-width:100%;
   max-height:100%;

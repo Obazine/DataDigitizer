@@ -3,6 +3,7 @@ import os
 from matplotlib.pyplot import axes
 from program import testFunc, testFunc2
 from werkzeug.utils import secure_filename
+import re
 
 app = Flask(__name__)
 
@@ -29,14 +30,17 @@ def display_image(filename):
 
 @app.route('/get-coordinates', methods=['GET', 'POST'])
 def thisRoute():
-    axesInfo = request.data
-    axesInfo = axesInfo.decode()
-    axesList = axesInfo.strip('][').split(',')
+    global axesList
+    axesInfo = request.data.decode()
+    axesList = re.sub(']', '', axesInfo)
+    axesList = re.sub(r'\[', '', axesList).split(',')
     print(axesList)
+    print(type(axesList))
     return render_template("index.html")
 
 @app.route('/handle_data', methods =["GET", "POST"])
 def handle_data():
+    global axesValues
     axesValues.append(request.form.get("minX"))
     axesValues.append(request.form.get("maxX"))
     axesValues.append(request.form.get("minY"))
@@ -52,10 +56,10 @@ def get_point():
     return render_template("index.html")
 
 def calculatePointvalue(pointAxes):
-    pointAxes = pointAxes.strip('[')
-    pointAxes = pointAxes.strip(']')
-    pointData = pointAxes.split(',')
-    pointX = pointData[0]
-    pointY = pointData[1]
-    print(pointX)
-    print(pointY)
+    pointData = pointAxes.strip('][').split(',')
+    pointX = int(pointData[0])
+    pointY = int(pointData[1])
+    calculatedXValue = (pointX - int(axesList[0]))/(int(axesList[2]) - int(axesList[0])) * int(axesValues[1])
+    calculatedYValue = (pointY - int(axesList[5]))/(int(axesList[7]) - int(axesList[5])) * int(axesValues[3])
+    print(calculatedXValue)
+    print(calculatedYValue)

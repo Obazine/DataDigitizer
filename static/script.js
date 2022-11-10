@@ -166,3 +166,14 @@ function getPointValue()
     };
     
 };
+
+function getPos(e){
+    let x=e.clientX;
+    let y=e.clientY;
+    let cursor="X: " + x + " Y: " + y;
+    document.getElementById("display-area").innerHTML=cursor;
+}
+
+function stopTracking(){
+    document.getElementById("display-area").innerHTML="";
+}
