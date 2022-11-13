@@ -157,7 +157,7 @@ body {
   cursor: default;
   font-weight: 550;
   font-size: x-large;
-  line-height: 50px;
+  line-height: 40px;
   color: #FFFFFF;
 }
 
@@ -219,7 +219,7 @@ body {
   display:flex;
 }
 
-#display-area {
+#display-coord {
   width: 15%;
   top: 0px;
   right: 0px;
@@ -234,6 +234,14 @@ body {
 }
 
 #graph-screen :hover {
+  cursor: crosshair;
+}
+
+.marker {
+  pointer-events: none;
+}
+
+.marker :hover {
   cursor: crosshair;
 }
 

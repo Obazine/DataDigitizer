@@ -1,3 +1,5 @@
+
+
 //particle background creation
 const particles = [];
 function windowResized() {
@@ -98,13 +100,24 @@ function recordCoords(event) {
     {
         var x = event.clientX;
         var y = event.clientY;  
-        tempCoord = [x, y]
+        var tempCoord = [x, y]
         axesCoords.push(tempCoord)
         var coords = "X coords: " + x + ", Y coords: " + y;
-        console.log(coords);
+        console.log(coords);  
+        $("body").append(            
+            $('<div class="marker"></div>').css({       // include a class
+                position: 'absolute',
+                top: event.pageY-3 + 'px',
+                left: event.pageX-3 + 'px',
+                width: '6px',
+                height: '6px',
+                background: '#ff0000'
+            })              
+        );
     };
     if(axesCoords.length == 4 && callibrateAxesActivated)
     {
+        $(".marker").remove();
         sender = JSON.stringify(axesCoords)
         xhr.open('POST', URL);
         xhr.send(sender);
@@ -113,13 +126,22 @@ function recordCoords(event) {
     };
     if(axesCoords.length == 4 && getPointValueActivated)
     {
+        $("body").append(            
+            $('<div class="marker"></div>').css({       // include a class
+                position: 'absolute',
+                top: event.pageY-3 + 'px',
+                left: event.pageX-3 + 'px',
+                width: '6px',
+                height: '6px',
+                background: '#000000'
+            })              
+        );
         var x = event.clientX;
         var y = event.clientY;  
         tempCoord = [x, y]
         sender = JSON.stringify(tempCoord)
         xhr.open('POST', '/get_point');
         xhr.send(sender);
-        getPointValueActivated = false;
         alert("complete");
     }
 };
@@ -167,13 +189,14 @@ function getPointValue()
     
 };
 
+//Mouse Coordinates display
 function getPos(e){
     let x=e.clientX;
     let y=e.clientY;
     let cursor="X: " + x + " Y: " + y;
-    document.getElementById("display-area").innerHTML=cursor;
+    document.getElementById("display-coord").innerHTML=cursor;
 }
 
 function stopTracking(){
-    document.getElementById("display-area").innerHTML="";
+    document.getElementById("display-coord").innerHTML="";
 }

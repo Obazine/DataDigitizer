@@ -70,12 +70,11 @@
       </div>
       <div class="options">Datasets</div>
       <div class="hidden">
-        <li class="hidden-options">Add Dataset</li>
-        <li class="hidden-options">Export All Data</li>
+        <li class="hidden-options">Export Data</li>
       </div>
       <div class="options">Measurements</div>
       <div class="hidden">
-        <li onclick="getPointValue()" class="hidden-options">Get Point Value</li>
+        <li onclick="getPointValue()" class="hidden-options">Get Point Values</li>
         <li class="hidden-options">Distance</li>
       </div>
     </ul>
@@ -83,7 +82,7 @@
   <div class = "main">
     <div id = "graph-screen">
       <div id = "image-container" onmousemove="getPos(event)" onmouseout="stopTracking()">  
-        <p id="display-area"></p>
+        <p id="display-coord"></p>
         <img id ="graph-image" onclick="recordCoords(event)" src="{{ url_for('display_image', filename=filename) }}">
       </div>
     </div>
