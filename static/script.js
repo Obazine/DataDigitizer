@@ -91,10 +91,11 @@ let callibrateAxesActivated = false;
 let axesCoords = []
 function callibrateAxes(){
     callibrateAxesActivated = true;
+    axesCoords=[];
 };
 
 function recordCoords(event) {
-    const URL = '/get-coordinates'
+    const URL = '/axes_calibration'
     const xhr = new XMLHttpRequest();
     if(axesCoords.length < 4 && callibrateAxesActivated)
     {
@@ -105,7 +106,7 @@ function recordCoords(event) {
         var coords = "X coords: " + x + ", Y coords: " + y;
         console.log(coords);  
         $("body").append(            
-            $('<div class="marker"></div>').css({       // include a class
+            $('<div class="marker"></div>').css({       
                 position: 'absolute',
                 top: event.pageY-3 + 'px',
                 left: event.pageX-3 + 'px',
@@ -127,7 +128,7 @@ function recordCoords(event) {
     if(axesCoords.length == 4 && getPointValueActivated)
     {
         $("body").append(            
-            $('<div class="marker"></div>').css({       // include a class
+            $('<div class="marker"></div>').css({      
                 position: 'absolute',
                 top: event.pageY-3 + 'px',
                 left: event.pageX-3 + 'px',
@@ -161,7 +162,7 @@ $(document).on('submit','#axes-form',function(e)
     e.preventDefault();
     $.ajax({
         type:'POST',
-        url:'/handle_data',
+        url:'/data_calibration',
         data:{
         minX:$("#min-x").val(),
         maxX:$("#max-x").val(),
