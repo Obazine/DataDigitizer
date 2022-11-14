@@ -70,7 +70,9 @@
       </div>
       <div class="options">Datasets</div>
       <div class="hidden">
-        <li class="hidden-options">Export Data</li>
+        <a class = hidden-options href="{{ url_for('.download_file') }}">
+          <li class="hidden-options">Export Data</li>
+        </a>
       </div>
       <div class="options">Measurements</div>
       <div class="hidden">

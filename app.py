@@ -1,6 +1,4 @@
-from flask import Flask, request, redirect, url_for, render_template
-import os
-from matplotlib.pyplot import axes
+from flask import Flask, request, redirect, url_for, render_template, send_file
 from VirtualGraph import VGraph
 from werkzeug.utils import secure_filename
 import re
@@ -46,5 +44,10 @@ def data_calibration():
 def get_point():
     pointInfo = request.data.decode()
     vGraph.CalculatePointvalue(pointInfo)
-    print(vGraph)
     return render_template("index.html")
+
+@app.route('/download')
+def download_file():
+    vGraph.ExportToCSV()
+    path = "graph.csv"
+    return send_file(path, as_attachment = True)

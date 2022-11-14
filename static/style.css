@@ -178,6 +178,10 @@ body {
   cursor: pointer;
 }
 
+.hidden-options {
+  color: #ffffffc4;
+}
+
 .hidden-options:hover {
   font-size: 105%;
 }

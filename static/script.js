@@ -192,8 +192,9 @@ function getPointValue()
 
 //Mouse Coordinates display
 function getPos(e){
-    let x=e.clientX;
-    let y=e.clientY;
+    let rect = e.target.getBoundingClientRect();
+    let x = Math.round(e.clientX - rect.left);
+    let y = Math.round(e.clientY - rect.top);
     let cursor="X: " + x + " Y: " + y;
     document.getElementById("display-coord").innerHTML=cursor;
 }
