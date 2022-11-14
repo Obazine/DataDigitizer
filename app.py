@@ -2,6 +2,7 @@ from flask import Flask, request, redirect, url_for, render_template, send_file
 from VirtualGraph import VGraph
 from werkzeug.utils import secure_filename
 import re
+import os
 
 app = Flask(__name__)
 
