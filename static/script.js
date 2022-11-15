@@ -143,7 +143,6 @@ function recordCoords(event) {
         sender = JSON.stringify(tempCoord)
         xhr.open('POST', '/get_point');
         xhr.send(sender);
-        alert("complete");
     }
 };
 
