@@ -46,19 +46,19 @@ def create_app():
     def axes_calibration():
         axesInfo = request.data.decode()
         axesInfo = re.sub(r'\[', '', re.sub(']', '', axesInfo)).split(',')
-        app.db.axescoords.insert_one({"min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])})
+        app.db.axescoords.insert_one({"user-id": session["email"], "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])})
         return render_template("index.html")
 
     @app.route('/data_calibration', methods =["GET", "POST"])
     def data_calibration():
-        app.db.axesvalues.insert_one({"min-x": int(request.form.get("minX")), "max-x": int(request.form.get("maxX")), "min-y": int(request.form.get("minY")), "max-y": int(request.form.get("maxY"))})
+        app.db.axesvalues.insert_one({"user-id": session["email"], "min-x": int(request.form.get("minX")), "max-x": int(request.form.get("maxX")), "min-y": int(request.form.get("minY")), "max-y": int(request.form.get("maxY"))})
         return render_template("index.html")
 
     @app.route('/get_point', methods=['GET', 'POST'])
     def get_point():
         pointInfo = request.data.decode()
         tempArray = CalculatePointvalue(pointInfo)
-        app.db.realdatavalues.insert_one({"X": tempArray[0], "Y": tempArray[1]})
+        app.db.realdatavalues.insert_one({"user-id": session["email"], "X": tempArray[0], "Y": tempArray[1]})
         return render_template("index.html")
 
     @app.route('/download')
