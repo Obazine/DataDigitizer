@@ -259,3 +259,32 @@ body {
   background-color: #494B5E;
 }
 
+/*-------help-page---------*/
+.help-main {
+  height: 100%;
+  width: 100%;
+  background-color: #777A90;
+  overflow: auto;
+  color: #f1f1f1;
+}
+
+.help-main h1 {
+  text-align: center;
+  margin: 20px;
+}
+
+.help-main li {
+  display: inline-block;
+  padding: 10PX;
+  line-height: 20px;
+  font-weight: 40px;
+  width: 50%;
+  margin-left: 100px;
+}
+
+.help-main img {
+  align-content: center;
+  max-width: 20%;
+  max-height: 20%;
+  margin-left: 50px;
+}

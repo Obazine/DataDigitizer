@@ -150,14 +150,11 @@ function recordCoords(event) {
 function openForm() {
     document.getElementById("axes-form").style.display = "block";
 };
-
 function closeForm() {
     document.getElementById("axes-form").style.display = "none";
 };
-
 $(document).on('submit','#axes-form',function(e)
 {
-    console.log('hello');
     e.preventDefault();
     $.ajax({
         type:'POST',
@@ -175,6 +172,31 @@ $(document).on('submit','#axes-form',function(e)
     }
     })
 });
+
+//dataset creation form
+function openDatabaseForm() {
+    document.getElementById("database-form").style.display = "block";
+};
+function closeDatabaseForm() {
+    document.getElementById("database-form").style.display = "none";
+};
+$(document).on('submit','#database-form',function(e)
+{
+    e.preventDefault();
+    $.ajax({
+        type:'POST',
+        url:'/data_calibration',
+        data:{
+        datasetName:$("#dataset-name").val(),
+    },
+    success:function()
+    {
+        alert('saved');
+        closeForm();
+    }
+    })
+});
+
 
 //Get Point Value Function
 let getPointValueActivated = false

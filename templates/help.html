@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Data Digitizer | Home</title>
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0" />
+    <meta http-equiv = "X-UA-Compatible" content = "ie = edge" />
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
+    <link rel ="stylesheet" media ="screen" href ="\static\style.css"/>
+</head>
+
+<body>
+
+<div class = "header">
+    <div class = "inner-header">
+        <div class = "logo-container">
+            <h1>Data Digitizer</h1>
+        </div>
+
+        <ul class = "header-navigation">
+            <a href="/" ><li>Home</li></a>
+            <a href="/help" ><li>Help</li></a>
+            {% if email %}
+            <a href="#" ><li>Hello, {{email}}</li></a>
+            <a href="/signout" ><li>Sign Out</li></a>
+            {% else %}
+                <a href="/login" ><li>Login</li></a>
+                <a href="/signup" ><li>Sign Up</li></a>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<div class="content">
+    <div class = "help-main">
+        <h1>Data Digitizer Quickstart Guide</h1>
+        <ul>
+            <li>1. On the side bar, hover over to the Images tab and upload an image of the graph you want to work with.</li>
+            <img src="static\icons\imagetabicon.png">
+            <li>2. Just below the images tab, click on "Axes Calibration", and click on the minimum x value, maximum x value, minimum y value and maximum x value respectively.</li>
+            <img src="static\icons\axescalibrationicon.png">
+            <li>3. Once the axes calibration is complete, a pop-up form will appear, prompting you to enter the values for the respective points.</li>
+            <img src="static\icons\popupformicon.png">
+            <li>4. Hover over the Measurements tab and click on "Get Points Values" to mark out the points where you want to get your values from.</li>
+            <img src="static\icons\markersicon.png">
+            <li>5. Finally, hover over to the Datasets tab and click "Export Data", this will download a csv file containing all the points you have marked.</li>
+        </ul>
+    </div>
+</div>  
+
+
+
+<div class = "footer">
+</div>
+
+
+
+<script src="\static\script.js"></script>
+</body>
+</html>

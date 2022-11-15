@@ -21,9 +21,15 @@
     </div>
 
     <ul class = "header-navigation">
-      <a href="#" ><li>Home</li></a>
-      <a href="#" ><li>File</li></a>
-      <a href="#" ><li>Help</li></a>
+      <a href="/" ><li>Home</li></a>
+      <a href="/help" ><li>Help</li></a>
+      {% if email %}
+        <a href="#" ><li>Hello, {{email}}</li></a>
+        <a href="/signout" ><li>Sign Out</li></a>
+      {% else %}
+        <a href="/login" ><li>Login</li></a>
+        <a href="/signup" ><li>Sign Up</li></a>
+      {% endif %}
     </ul>
   </div>
 </div>
@@ -41,6 +47,16 @@
     <input type="number" placeholder="Enter maximum Y value" name = "max-y" id="max-y" required>
     <button type="submit" class="btn">Submit</button>
     <button type="button" class="btn cancel" onClick="closeForm()">Close</button>
+  </form>
+</div>
+
+<div class="form-popup" id="database-form">
+  <form  method="post" class="form-container">
+    <h2>Please enter the values below</h2>
+    <label for="dataset-name">Dataset Name</label>
+    <input type="text" placeholder="Enter databset name" name = "dataset-name" id="dataset-name" required>
+    <button type="submit" class="btn">Submit</button>
+    <button type="button" class="btn cancel" onClick="closeDatabaseForm()">Close</button>
   </form>
 </div>
 
@@ -70,14 +86,14 @@
       </div>
       <div class="options">Datasets</div>
       <div class="hidden">
+        <li onclick="openDatabaseForm()"class="hidden-options">Create Dataset</li>
         <a class = hidden-options href="{{ url_for('.download_file') }}">
-          <li class="hidden-options">Export Data</li>
+          <li class="hidden-options">Export Dataset</li>
         </a>
       </div>
       <div class="options">Measurements</div>
       <div class="hidden">
         <li onclick="getPointValue()" class="hidden-options">Get Point Values</li>
-        <li class="hidden-options">Distance</li>
       </div>
     </ul>
   </div>
