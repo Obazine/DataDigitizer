@@ -15,11 +15,17 @@
             <div class = "logo-container">
                 <h1>Data Digitizer</h1>
             </div>
-    
+
             <ul class = "header-navigation">
                 <a href="/" ><li>Home</li></a>
-                <a href="#" ><li>File</li></a>
                 <a href="/help" ><li>Help</li></a>
+                {% if email %}
+                    <a href="#" ><li>Hello, {{email}}</li></a>
+                    <a href="/signout" ><li>Sign Out</li></a>
+                {% else %}
+                    <a href="/login" ><li>Login</li></a>
+                    <a href="/signup" ><li>Sign Up</li></a>
+                {% endif %}
             </ul>
         </div>
     </div>
@@ -32,10 +38,10 @@
 
             <form method="POST">
                 <label>E-mail
-                    <input type="email" name="email" />
+                    <input type="email" name="email" required/>
                 </label>
                 <label>Password
-                    <input type="password" name="password" />
+                    <input type="password" name="password" required/>
                 </label>
                 <input type="submit" value="Signup" />
             </form>

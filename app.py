@@ -5,12 +5,19 @@ import os
 from pymongo import MongoClient
 import csv
 from dotenv import load_dotenv
+import uuid
+import boto3
 import glob
 
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    s3 = boto3.client('s3',
+        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY"),
+        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY")
+    )
+    BUCKET_NAME = "datadigitizer-images"
     client = MongoClient(os.environ.get("MONGODB_URI"))
     app.db = client.datadigitizer
     UPLOAD_FOLDER = 'static/uploads/'
@@ -19,24 +26,39 @@ def create_app():
 
     @app.route('/')
     def home():
-        return render_template("index.html", email=session.get("email"))
+        if not session.get("email"):
+            session["email"] = None
+        session["unique-session-id"] = uuid.uuid4().hex
+        return render_template("index.html", filename=session.get("filename"), email=session.get("email"))
 
     @app.route('/help')
     def help():
         return render_template("help.html")
 
-    @app.route('/', methods=['POST'])
+    @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
+        app.db.axescoords.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
+        app.db.images.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
+        app.db.axesvalues.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
+        app.db.realdatavalues.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"],})
         files = glob.glob('static/uploads/*')
         for f in files:
             os.remove(f)
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        app.db.axescoords.delete_many({})
-        app.db.axesvalues.delete_many({})
-        app.db.realdatavalues.delete_many({})
-        return render_template('index.html', filename=filename)
+        if request.method == 'POST':
+            img = request.files['file']
+        if img:
+                filename = secure_filename(img.filename)
+                filename = uuid.uuid4().hex
+                img.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                s3.upload_file(
+                    Bucket = BUCKET_NAME,
+                    Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
+                    Key=filename
+                )
+                app.db.images.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "filename": filename})
+                session["filename"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                #s3.download_file(Bucket=BUCKET_NAME, Key=filename, Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return render_template('index.html', filename=session.get("filename"), email=session.get("email"))
 
     @app.route('/display/<filename>')
     def display_image(filename):
@@ -46,19 +68,19 @@ def create_app():
     def axes_calibration():
         axesInfo = request.data.decode()
         axesInfo = re.sub(r'\[', '', re.sub(']', '', axesInfo)).split(',')
-        app.db.axescoords.insert_one({"user-id": session["email"], "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])})
+        app.db.axescoords.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])})
         return render_template("index.html")
 
     @app.route('/data_calibration', methods =["GET", "POST"])
     def data_calibration():
-        app.db.axesvalues.insert_one({"user-id": session["email"], "min-x": int(request.form.get("minX")), "max-x": int(request.form.get("maxX")), "min-y": int(request.form.get("minY")), "max-y": int(request.form.get("maxY"))})
+        app.db.axesvalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "min-x": int(request.form.get("minX")), "max-x": int(request.form.get("maxX")), "min-y": int(request.form.get("minY")), "max-y": int(request.form.get("maxY"))})
         return render_template("index.html")
 
     @app.route('/get_point', methods=['GET', 'POST'])
     def get_point():
         pointInfo = request.data.decode()
         tempArray = CalculatePointvalue(pointInfo)
-        app.db.realdatavalues.insert_one({"user-id": session["email"], "X": tempArray[0], "Y": tempArray[1]})
+        app.db.realdatavalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "X": tempArray[0], "Y": tempArray[1]})
         return render_template("index.html")
 
     @app.route('/download')
@@ -89,7 +111,7 @@ def create_app():
             if app.db.users.count_documents({"email": email}):
                 print("Error: You are already in the database")
             else:
-                app.db.users.insert_one({"email": email, "password": password})
+                app.db.users.insert_one({"user-id": email, "password": password})
                 flash("Successfully signed up.")
                 return redirect(url_for("login"))
         return render_template("signup.html")

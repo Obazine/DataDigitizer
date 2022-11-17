@@ -68,7 +68,7 @@
     <ul>
       <div class="options">Images</div>
       <div class="hidden">
-        <form method="post" action="/" enctype="multipart/form-data">
+        <form method="post" action="/upload_image" enctype="multipart/form-data">
           <dl>
               <p>
                   <input type="file" name="file" class="form-control" autocomplete="off" accept="image/*"> 
@@ -101,7 +101,7 @@
     <div id = "graph-screen">
       <div id = "image-container" onmousemove="getPos(event)" onmouseout="stopTracking()">  
         <p id="display-coord"></p>
-        <img id ="graph-image" onclick="recordCoords(event)" src="{{ url_for('display_image', filename=filename) }}">
+        <img id ="graph-image" onclick="recordCoords(event)" src="{{filename}}">
       </div>
     </div>
   </div>
