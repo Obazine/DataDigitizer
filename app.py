@@ -38,7 +38,6 @@ def create_app():
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
         app.db.axescoords.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
-        app.db.images.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
         app.db.axesvalues.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
         app.db.realdatavalues.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"],})
         files = glob.glob('static/uploads/*')
@@ -58,6 +57,7 @@ def create_app():
                 app.db.images.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "filename": filename})
                 session["filename"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 #s3.download_file(Bucket=BUCKET_NAME, Key=filename, Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        app.db.images.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
         return render_template('index.html', filename=session.get("filename"), email=session.get("email"))
 
     @app.route('/display/<filename>')
