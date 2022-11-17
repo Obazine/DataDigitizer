@@ -66,12 +66,11 @@ class Particle {
 }
 
 //Magnifier Glass
+//A copy of the image is created, it is then enlarged and an offset value is calculated so that the centre is the same as cursor pointer
 var mainImg = document.getElementById("graph-image");
 var preview = document.querySelector(".zoom-preview");
-
 var x = preview.offsetWidth / 100;
 var y = preview.offsetHeight / 100;
-
 mainImg.addEventListener("mousemove", (e) => {
     preview.style.backgroundImage = `url(${mainImg.src})`;
     preview.style.backgroundSize = mainImg.width * x + 
@@ -85,15 +84,17 @@ mainImg.addEventListener("mouseout", () => {
     preview.style.backgroundImage = "none";
 });
 
-
 //Axes Callibration
+//axesCoords list is used to temporarily store the coordinates for the axes
+//The axesCoords list is cleared everytime the function is called
+//The recordCoords function is used to also mark the points where the user wants to get the value. 
+//The data is sent through their respective routes and data is added to the database
 let callibrateAxesActivated = false;
 let axesCoords = []
 function callibrateAxes(){
     callibrateAxesActivated = true;
     axesCoords=[];
 };
-
 function recordCoords(event) {
     const URL = '/axes_calibration'
     const xhr = new XMLHttpRequest();
@@ -147,6 +148,7 @@ function recordCoords(event) {
 };
 
 //Axes data form input function
+//Displays and hides the axes form pop up. Sends the data to the route within the Flask application using ajax
 function openAxesForm() {
     document.getElementById("axes-form").style.display = "block";
 };
@@ -173,7 +175,8 @@ $(document).on('submit','#axes-form',function(e)
     })
 });
 
-//dataset creation form
+//Dataset creation form
+//Same as axes pop up form, just the values are different
 function openDatasetForm() {
     if(!document.getElementById("username"))
     {
@@ -205,6 +208,7 @@ $(document).on('submit','#dataset-form',function(e)
 });
 
 //Get Point Value Function
+//Checks if axes have been calibrated first, then sets a bool variable to true, activating the get point function everytime mouse clicks on image
 let getPointValueActivated = false
 function getPointValue()
 {
@@ -218,6 +222,7 @@ function getPointValue()
 };
 
 //Mouse Coordinates display
+//Gets relative mouse coordinate within the image container
 function getPos(e){
     let rect = e.target.getBoundingClientRect();
     let x = Math.round(e.clientX - rect.left);
@@ -229,6 +234,3 @@ function getPos(e){
 function stopTracking(){
     document.getElementById("display-coord").innerHTML="";
 }
-
-
-//login/out
