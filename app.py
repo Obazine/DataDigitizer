@@ -35,7 +35,6 @@ def create_app():
             session["unique-session-id"] = uuid.uuid4().hex
         if not session.get("dataset-name"):
             session["dataset-name"] = "temp"
-        print(session["dataset-name"])
         return render_template("index.html", filename=session.get("image-path"), email=session.get("email"))
 
     #Directs user to the help page
@@ -49,8 +48,8 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        app.db.datasets.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
-        app.db.realdatavalues.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
+        app.db.datasets.delete_many({"unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
+        app.db.realdatavalues.delete_many({"unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
         files = glob.glob('static/uploads/*')
         for f in files:
             os.remove(f)
@@ -65,7 +64,10 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                app.db.datasets.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None})
+                if session["dataset-name"] != "temp":
+                    app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, { "$set": { "filename": filename}})
+                else:
+                    app.db.datasets.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None})
                 session["image-path"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 session["image-name"] = filename
                 #s3.download_file(Bucket=BUCKET_NAME, Key=filename, Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -118,13 +120,16 @@ def create_app():
             password = request.form.get("password")
 
             user = app.db.users.find_one({"user-id": email})
-            if user["password"] == password:
+            if user is None:
+                flash("Incorrect e-mail or password.")
+            elif user["password"] == password:
                 session["email"] = email
                 if(session.get("image-name")):
                     app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
                     app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
                 return redirect(url_for("home"))
-            flash("Incorrect e-mail or password.")
+            else:
+                flash("Incorrect e-mail or password.")
         return render_template("login.html")
 
     #Similar to login, just adds the user information into a collection in the database
@@ -133,11 +138,10 @@ def create_app():
         if request.method == "POST":
             email = request.form.get("email")
             password = request.form.get("password")
-            if app.db.users.count_documents({"email": email}):
-                print("Error: You are already in the database")
+            if app.db.users.count_documents({"user-id": email}):
+                flash("Error: This account already exists")
             else:
                 app.db.users.insert_one({"user-id": email, "password": password})
-                flash("Successfully signed up.")
                 session["email"] = email
                 if(session.get("image-name")):
                     app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
@@ -155,11 +159,17 @@ def create_app():
     #If an image already exists, the dataset name is changed from temp to the name specified by the user
     @app.route('/create_dataset', methods=['GET', 'POST'])
     def create_dataset():
-        session["dataset-name"] = request.form.get("datasetName")
-        if(session.get("image-name")):
-            print("dataset updated")
-            app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
-            app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
+        datasetname = request.form.get("datasetName")
+        if app.db.datasets.count_documents({"dataset-name": datasetname}):
+            print("a database with the same name already exists")
+        else:
+            session["dataset-name"] = datasetname
+            if session.get("image-name"):
+                print("dataset updated")
+                app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
+                app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
+            else:
+                app.db.datasets.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": None, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None})
         return redirect(url_for("home"))
 
     #Function used to get the real data value of a point selected by the user, returns the xy values as array

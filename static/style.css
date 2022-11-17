@@ -188,6 +188,7 @@ body {
 
 .hidden-options {
   color: #ffffffc4;
+  line-height: 30px;
 }
 
 .hidden-options:hover {
