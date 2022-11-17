@@ -27,9 +27,12 @@ def create_app():
     @app.route('/')
     def home():
         if not session.get("email"):
-            session["email"] = None
+            session["email"] = "temp"
         session["unique-session-id"] = uuid.uuid4().hex
-        return render_template("index.html", filename=session.get("filename"), email=session.get("email"))
+        if not session.get("dataset-name"):
+            session["dataset-name"] = "temp"
+        print(session["dataset-name"])
+        return render_template("index.html", filename=session.get("image"), email=session.get("email"))
 
     @app.route('/help')
     def help():
@@ -37,9 +40,10 @@ def create_app():
 
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        app.db.axescoords.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
-        app.db.axesvalues.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
-        app.db.realdatavalues.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"],})
+        app.db.axescoords.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
+        app.db.axesvalues.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
+        app.db.realdatavalues.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
+        app.db.images.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
         files = glob.glob('static/uploads/*')
         for f in files:
             os.remove(f)
@@ -54,11 +58,11 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                app.db.images.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "filename": filename})
-                session["filename"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                app.db.images.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": filename})
+                session["image"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                session["image-name"] = filename
                 #s3.download_file(Bucket=BUCKET_NAME, Key=filename, Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        app.db.images.delete_many({"user-id": None, "unique-session-id": session["unique-session-id"]})
-        return render_template('index.html', filename=session.get("filename"), email=session.get("email"))
+        return render_template('index.html', filename=session.get("image"), email=session.get("email"))
 
     @app.route('/display/<filename>')
     def display_image(filename):
@@ -68,19 +72,19 @@ def create_app():
     def axes_calibration():
         axesInfo = request.data.decode()
         axesInfo = re.sub(r'\[', '', re.sub(']', '', axesInfo)).split(',')
-        app.db.axescoords.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])})
+        app.db.axescoords.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])})
         return render_template("index.html")
 
     @app.route('/data_calibration', methods =["GET", "POST"])
     def data_calibration():
-        app.db.axesvalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "min-x": int(request.form.get("minX")), "max-x": int(request.form.get("maxX")), "min-y": int(request.form.get("minY")), "max-y": int(request.form.get("maxY"))})
+        app.db.axesvalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "min-x": int(request.form.get("minX")), "max-x": int(request.form.get("maxX")), "min-y": int(request.form.get("minY")), "max-y": int(request.form.get("maxY"))})
         return render_template("index.html")
 
     @app.route('/get_point', methods=['GET', 'POST'])
     def get_point():
         pointInfo = request.data.decode()
         tempArray = CalculatePointvalue(pointInfo)
-        app.db.realdatavalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "X": tempArray[0], "Y": tempArray[1]})
+        app.db.realdatavalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "X": tempArray[0], "Y": tempArray[1]})
         return render_template("index.html")
 
     @app.route('/download')
@@ -95,8 +99,10 @@ def create_app():
             email = request.form.get("email")
             password = request.form.get("password")
 
-            user = app.db.users.find_one({"email": email})
-            print(user)
+            user = app.db.users.find_one({"user-id": email})
+            
+            if(session.get("image")):
+                app.db.images.update_one({"filename": session["image-name"]}, { "$set": { "user-id": user["user-id"] } })
             if user["password"] == password:
                 session["email"] = email
                 return redirect(url_for("home"))
@@ -119,6 +125,13 @@ def create_app():
     @app.route('/signout')
     def signout():
         session.clear()
+        return redirect(url_for("home"))
+
+    @app.route('/create_dataset', methods=['GET', 'POST'])
+    def create_dataset():
+        session["dataset-name"] = request.form.get("datasetName")
+        if(session.get("image-name")):
+            app.db.images.update_one({"user-id": session["email"]}, { "$set": { "dataset-name": session["dataset-name"] } })
         return redirect(url_for("home"))
 
     def CalculatePointvalue(pointAxes: str):

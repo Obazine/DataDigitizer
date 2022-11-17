@@ -123,7 +123,7 @@ function recordCoords(event) {
         xhr.open('POST', URL);
         xhr.send(sender);
         callibrateAxesActivated = false;
-        openForm();
+        openAxesForm();
     };
     if(axesCoords.length == 4 && getPointValueActivated)
     {
@@ -147,10 +147,10 @@ function recordCoords(event) {
 };
 
 //Axes data form input function
-function openForm() {
+function openAxesForm() {
     document.getElementById("axes-form").style.display = "block";
 };
-function closeForm() {
+function closeAxesForm() {
     document.getElementById("axes-form").style.display = "none";
 };
 $(document).on('submit','#axes-form',function(e)
@@ -168,35 +168,41 @@ $(document).on('submit','#axes-form',function(e)
     success:function()
     {
         alert('saved');
-        closeForm();
+        closeAxesForm();
     }
     })
 });
 
 //dataset creation form
-function openDatabaseForm() {
-    document.getElementById("database-form").style.display = "block";
+function openDatasetForm() {
+    if(!document.getElementById("username"))
+    {
+        alert("Please log in or sign in first");
+    }
+    else 
+    {
+        document.getElementById("dataset-form").style.display = "block";
+    };
 };
-function closeDatabaseForm() {
-    document.getElementById("database-form").style.display = "none";
+function closeDatasetForm() {
+    document.getElementById("dataset-form").style.display = "none";
 };
-$(document).on('submit','#database-form',function(e)
+$(document).on('submit','#dataset-form',function(e)
 {
     e.preventDefault();
     $.ajax({
         type:'POST',
-        url:'/data_calibration',
+        url:'/create_dataset',
         data:{
         datasetName:$("#dataset-name").val(),
     },
     success:function()
     {
         alert('saved');
-        closeForm();
+        closeDatasetForm();
     }
     })
 });
-
 
 //Get Point Value Function
 let getPointValueActivated = false
@@ -223,3 +229,6 @@ function getPos(e){
 function stopTracking(){
     document.getElementById("display-coord").innerHTML="";
 }
+
+
+//login/out

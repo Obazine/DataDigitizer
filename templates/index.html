@@ -23,8 +23,8 @@
     <ul class = "header-navigation">
       <a href="/" ><li>Home</li></a>
       <a href="/help" ><li>Help</li></a>
-      {% if email %}
-        <a href="#" ><li>Hello, {{email}}</li></a>
+      {% if email != "temp"%}
+        <a href="#" ><li id="username">{{email}}</li></a>
         <a href="/signout" ><li>Sign Out</li></a>
       {% else %}
         <a href="/login" ><li>Login</li></a>
@@ -34,7 +34,7 @@
   </div>
 </div>
 
-<div class="form-popup" id="axes-form">
+<div class="axes-form-popup" id="axes-form">
   <form  method="post" class="form-container">
     <h2>Please enter the values below</h2>
     <label for="min-x">Min-X</label>
@@ -46,17 +46,16 @@
     <label for="max-y">Max-Y</label>
     <input type="number" placeholder="Enter maximum Y value" name = "max-y" id="max-y" required>
     <button type="submit" class="btn">Submit</button>
-    <button type="button" class="btn cancel" onClick="closeForm()">Close</button>
+    <button type="button" class="btn cancel" onClick="closeAxesForm()">Close</button>
   </form>
 </div>
 
-<div class="form-popup" id="database-form">
-  <form  method="post" class="form-container">
-    <h2>Please enter the values below</h2>
+<div class="create-dataset-form" id="dataset-form">
+  <form method="post" class="form-container">
     <label for="dataset-name">Dataset Name</label>
-    <input type="text" placeholder="Enter databset name" name = "dataset-name" id="dataset-name" required>
+    <input type="text" placeholder="Enter dataset name" name="dataset-name"  id="dataset-name" required>
     <button type="submit" class="btn">Submit</button>
-    <button type="button" class="btn cancel" onClick="closeDatabaseForm()">Close</button>
+    <button type="button" class="btn cancel" onClick="closeDatasetForm()">Close</button>
   </form>
 </div>
 
@@ -82,18 +81,17 @@
       <div class="options">Axes</div>
       <div class="hidden">
         <li onclick="callibrateAxes()" class="hidden-options">Axes calibration</li>
-
-      </div>
-      <div class="options">Datasets</div>
-      <div class="hidden">
-        <li onclick="openDatabaseForm()"class="hidden-options">Create Dataset</li>
-        <a class = hidden-options href="{{ url_for('.download_file') }}">
-          <li class="hidden-options">Export Dataset</li>
-        </a>
       </div>
       <div class="options">Measurements</div>
       <div class="hidden">
         <li onclick="getPointValue()" class="hidden-options">Get Point Values</li>
+      </div>
+      <div class="options">Datasets</div>
+      <div class="hidden">
+        <li onclick="openDatasetForm()"class="hidden-options">Create Dataset</li>
+        <a class = hidden-options href="{{ url_for('.download_file') }}">
+          <li class="hidden-options">Export Dataset</li>
+        </a>
       </div>
     </ul>
   </div>

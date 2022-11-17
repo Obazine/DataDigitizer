@@ -83,7 +83,7 @@ body {
 }
 
 /*--------Popup Form---------*/
-.form-popup {
+.axes-form-popup {
   display: none;
   position: fixed;
   bottom: 0;
@@ -135,6 +135,14 @@ body {
 
 .form-container .btn:hover, .open-button:hover {
   opacity: 1;
+}
+
+.create-dataset-form {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 50%;
+  z-index: 9;
 }
 /*--------Content---------*/
 .content{
