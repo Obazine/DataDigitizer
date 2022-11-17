@@ -296,3 +296,47 @@ body {
   max-height: 20%;
   margin-left: 50px;
 }
+
+/*-------login & sign up page---------*/
+.signin-form{
+  width: 50%;
+  height: 60%;
+  margin: 5% auto 15% auto;
+  background-color: #f1f1f1;
+  text-align: center;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.signin-form label {
+  color: #494B5E;
+  line-height: 20px;
+  display: block;
+}
+
+.signin-form p {
+  color: #494B5E;
+}
+
+.signin-form-container {
+  padding: 16px;
+}
+
+.sign-in-form-btn {
+  background-color: #04AA6D;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.signin-form-container input[type=email], .signin-form-container input[type=password] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}

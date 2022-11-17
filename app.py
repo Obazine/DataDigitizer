@@ -28,9 +28,11 @@ def create_app():
     #If both are still temp when user starts new image, previous data will be deleted on the database.
     @app.route('/')
     def home():
+        #DatabaseReset()
         if not session.get("email"):
             session["email"] = "temp"
-        session["unique-session-id"] = uuid.uuid4().hex
+        if not session.get("unique-session-id"):
+            session["unique-session-id"] = uuid.uuid4().hex
         if not session.get("dataset-name"):
             session["dataset-name"] = "temp"
         print(session["dataset-name"])
@@ -47,10 +49,8 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        app.db.axescoords.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
-        app.db.axesvalues.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
+        app.db.datasets.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
         app.db.realdatavalues.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
-        app.db.images.delete_many({"user-id": "temp", "unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
         files = glob.glob('static/uploads/*')
         for f in files:
             os.remove(f)
@@ -65,7 +65,7 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                app.db.images.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": filename})
+                app.db.datasets.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None})
                 session["image-path"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 session["image-name"] = filename
                 #s3.download_file(Bucket=BUCKET_NAME, Key=filename, Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -82,14 +82,14 @@ def create_app():
     def axes_calibration():
         axesInfo = request.data.decode()
         axesInfo = re.sub(r'\[', '', re.sub(']', '', axesInfo)).split(',')
-        app.db.axescoords.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])})
+        app.db.datasets.update_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]}, {"$set": { "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])}})
         return render_template("index.html")
 
     #Called after axes calibration
     #Axes values are stored in an array from a form input and is stored in another collection on the database
     @app.route('/data_calibration', methods =["GET", "POST"])
     def data_calibration():
-        app.db.axesvalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "min-x": int(request.form.get("minX")), "max-x": int(request.form.get("maxX")), "min-y": int(request.form.get("minY")), "max-y": int(request.form.get("maxY"))})
+        app.db.datasets.update_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]},{"$set": { "min-x-val": int(request.form.get("minX")), "max-x-val": int(request.form.get("maxX")), "min-y-val": int(request.form.get("minY")), "max-y-val": int(request.form.get("maxY"))} })
         return render_template("index.html")
 
     #Called everytime user clicks on screen after set up
@@ -98,7 +98,7 @@ def create_app():
     def get_point():
         pointInfo = request.data.decode()
         tempArray = CalculatePointvalue(pointInfo)
-        app.db.realdatavalues.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "X": tempArray[0], "Y": tempArray[1]})
+        app.db.realdatavalues.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": session["image-name"], "X": tempArray[0], "Y": tempArray[1]})
         return render_template("index.html")
 
     #Called when user clicks export databse, ExportTOCSV function is called and sends path to the site
@@ -121,7 +121,8 @@ def create_app():
             if user["password"] == password:
                 session["email"] = email
                 if(session.get("image-name")):
-                    app.db.images.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email } })
+                    app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
+                    app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
                 return redirect(url_for("home"))
             flash("Incorrect e-mail or password.")
         return render_template("login.html")
@@ -137,7 +138,11 @@ def create_app():
             else:
                 app.db.users.insert_one({"user-id": email, "password": password})
                 flash("Successfully signed up.")
-                return redirect(url_for("login"))
+                session["email"] = email
+                if(session.get("image-name")):
+                    app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
+                    app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
+                return redirect(url_for("home"))
         return render_template("signup.html")
 
     #Clears session data for the user
@@ -153,19 +158,19 @@ def create_app():
         session["dataset-name"] = request.form.get("datasetName")
         if(session.get("image-name")):
             print("dataset updated")
-            app.db.images.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] } })
+            app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
+            app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
         return redirect(url_for("home"))
 
     #Function used to get the real data value of a point selected by the user, returns the xy values as array
     #Fields are filtered using the unique-session-id and dataset-name
     def CalculatePointvalue(pointAxes: str):
-        axesCoordEntry = app.db.axescoords.find_one({"unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]})
-        axesValueEntry = app.db.axesvalues.find_one({"unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]})
+        datasetEntry = app.db.datasets.find_one({"unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]})
         pointData = pointAxes.strip('][').split(',')
         pointX = int(pointData[0])
         pointY = int(pointData[1])
-        calculatedXValue = round((pointX - axesCoordEntry["min-x-coord"])/(axesCoordEntry["max-x-coord"] - axesCoordEntry["min-x-coord"]) * (axesValueEntry["max-x"] - axesValueEntry["min-x"]) - axesValueEntry["min-x"], 3)
-        calculatedYValue = round((pointY - axesCoordEntry["min-y-coord"])/(axesCoordEntry["max-y-coord"] - axesCoordEntry["min-y-coord"]) * (axesValueEntry["max-y"] - axesValueEntry["min-y"]) - axesValueEntry["min-y"], 3)
+        calculatedXValue = round((pointX - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) - datasetEntry["min-x-val"], 3)
+        calculatedYValue = round((pointY - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) - datasetEntry["min-y-val"], 3)
         tempArray = [calculatedXValue, calculatedYValue]
         return(tempArray)
     
@@ -178,6 +183,12 @@ def create_app():
         for graphData in app.db.realdatavalues.find({"unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]}):
             writer.writerow([graphData["X"],graphData["Y"]])
         file.close()
+
+    def DatabaseReset():
+        session.clear()
+        app.db.datasets.delete_many({})
+        app.db.realdatavalues.delete_many({})
+        app.db.users.delete_many({})
 
     return app
     

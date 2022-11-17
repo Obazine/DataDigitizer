@@ -32,20 +32,22 @@
 
     <div class="content">
         <div class = "help-main">
-            {% for message in get_flashed_messages() %}
-            <h2>{{ message }}</h2>
-            {% endfor %}
+            <div class="signin-form">
+                {% for message in get_flashed_messages() %}
+                <h2>{{ message }}</h2>
+                {% endfor %}
 
-            <form method="POST">
-                <label>E-mail
-                    <input type="email" name="email" required/>
-                </label>
-                <label>Password
-                    <input type="password" name="password" required/>
-                </label>
-                <input type="submit" value="Login" />
-            </form>
-            <p><a href="{{ url_for('signup') }}">Sign up</a> instead</p>
+                <form method="POST">
+                    <div class="signin-form-container">
+                        <label for="email">E-mail</label>
+                        <input type="email" placeholder="Enter email" name="email" required/>
+                        <label for="password">Password</label>
+                        <input type="password" placeholder="Enter password" name="password" required/>
+                        <button class="sign-in-form-btn" type="submit">Login</button>
+                    </div>
+                </form>
+                <p><a href="{{ url_for('signup') }}">Sign up</a> instead</p>
+            </div>
         </div>
     </div>
 <div class = "footer">
