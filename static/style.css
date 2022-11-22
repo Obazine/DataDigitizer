@@ -250,6 +250,14 @@ body {
   cursor: crosshair;
 }
 
+#dataset-display {
+  margin-left: 20px;
+}
+
+.dataset-list-options {
+  color: #494B5E;
+}
+
 .marker {
   pointer-events: none;
 }

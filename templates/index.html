@@ -52,12 +52,42 @@
 </div>
 
 <!--Database creation popup form-->
-<div class="create-dataset-form" id="dataset-form">
+<div class="create-dataset-form" id="dataset-creation-form">
   <form method="post" class="form-container">
     <label for="dataset-name">Dataset Name</label>
     <input type="text" placeholder="Enter dataset name" name="dataset-name"  id="dataset-name" required>
     <button type="submit" class="btn">Submit</button>
-    <button type="button" class="btn cancel" onClick="closeDatasetForm()">Close</button>
+    <button type="button" class="btn cancel" onClick="closeCreateDatasetForm()">Close</button>
+  </form>
+</div>
+
+<!--Database selection popup form-->
+<div class="create-dataset-form" id="dataset-selection-form">
+  <form method="post" class="form-container" action="{{ url_for('select_dataset') }}">
+    <label class="hidden-options" for="dataset">Select Dataset</label>
+    <select class="dataset-list-options" name="dataset">
+      <option class="dataset-list-options" value="{{dataset_list[0]}}" selected>{{dataset_list[0]}}</option>
+      {% for dataset in dataset_list[1:] %}
+        <option class="dataset-list-options" value="{{dataset}}">{{dataset}}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn">Submit</button>
+    <button type="button" class="btn cancel" onClick="closeSelectDatasetForm()">Close</button>
+  </form>
+</div>
+
+<!--Database delection popup form-->
+<div class="create-dataset-form" id="dataset-delection-form">
+  <form method="post" class="form-container" action="{{ url_for('delete_dataset') }}">
+    <label class="hidden-options" for="dataset">Select Dataset</label>
+    <select class="dataset-list-options" name="dataset">
+      <option class="dataset-list-options" value="{{dataset_list[0]}}" selected>{{dataset_list[0]}}</option>
+      {% for dataset in dataset_list[1:] %}
+        <option class="dataset-list-options" value="{{dataset}}">{{dataset}}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn">Delete</button>
+    <button type="button" class="btn cancel" onClick="closeSelectDatasetForm()">Close</button>
   </form>
 </div>
 
@@ -91,18 +121,21 @@
       </div>
       <div class="options">Datasets</div>
       <div class="hidden">
-        <li onclick="openDatasetForm()"class="hidden-options">Create Dataset</li>
-        <li class="hidden-options">Select Dataset</li>
+        <li onclick="openCreateDatasetForm()" class="hidden-options">Create Dataset</li>
+        <li onclick="openSelectDatasetForm()" class="hidden-options">Select Dataset</li>
         <a class = hidden-options href="{{ url_for('.download_file') }}">
           <li class="hidden-options">Export Dataset</li>
         </a>
-        <li class="hidden-options">Delete Dataset</li>
+        <li onclick="openDeleteDatasetForm()" class="hidden-options">Delete Dataset</li>
       </div>
     </ul>
   </div>
   <div class = "main">
     <div id = "graph-screen">
       <div id = "image-container" onmousemove="getPos(event)" onmouseout="stopTracking()">  
+        {% if dataset_name != "temp"%}
+        <p id="dataset-display">{{dataset_name}}</p>
+        {% endif %}
         <p id="display-coord"></p>
         <img id ="graph-image" onclick="recordCoords(event)" src="{{filename}}">
       </div>

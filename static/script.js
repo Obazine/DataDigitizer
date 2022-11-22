@@ -177,20 +177,20 @@ $(document).on('submit','#axes-form',function(e)
 
 //Dataset creation form
 //Same as axes pop up form, just the values are different
-function openDatasetForm() {
+function openCreateDatasetForm() {
     if(!document.getElementById("username"))
     {
         alert("Please log in or sign in first");
     }
     else 
     {
-        document.getElementById("dataset-form").style.display = "block";
+        document.getElementById("dataset-creation-form").style.display = "block";
     };
 };
-function closeDatasetForm() {
-    document.getElementById("dataset-form").style.display = "none";
+function closeCreateDatasetForm() {
+    document.getElementById("dataset-creation-form").style.display = "none";
 };
-$(document).on('submit','#dataset-form',function(e)
+$(document).on('submit','#dataset-creation-form',function(e)
 {
     e.preventDefault();
     $.ajax({
@@ -202,10 +202,42 @@ $(document).on('submit','#dataset-form',function(e)
     success:function()
     {
         alert('saved');
-        closeDatasetForm();
+        closeCreateDatasetForm();
+        window.location.replace(window.location.href);
     }
     })
 });
+
+//Dataset Selection form
+function openSelectDatasetForm() {
+    if(!document.getElementById("username"))
+    {
+        alert("Please log in or sign in first");
+    }
+    else 
+    {
+        document.getElementById("dataset-selection-form").style.display = "block";
+    };
+};
+function closeSelectDatasetForm() {
+    document.getElementById("dataset-selection-form").style.display = "none";
+};
+
+//Dataset Delection form
+function openDeleteDatasetForm() {
+    if(!document.getElementById("username"))
+    {
+        alert("Please log in or sign in first");
+    }
+    else 
+    {
+        document.getElementById("dataset-delection-form").style.display = "block";
+    };
+};
+function closeDeleteDatasetForm() {
+    document.getElementById("dataset-delection-form").style.display = "none";
+};
+
 
 //Get Point Value Function
 //Checks if axes have been calibrated first, then sets a bool variable to true, activating the get point function everytime mouse clicks on image

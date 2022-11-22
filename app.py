@@ -31,11 +31,14 @@ def create_app():
         #DatabaseReset()
         if not session.get("email"):
             session["email"] = "temp"
-        if not session.get("unique-session-id"):
-            session["unique-session-id"] = uuid.uuid4().hex
         if not session.get("dataset-name"):
             session["dataset-name"] = "temp"
-        return render_template("index.html", filename=session.get("image-path"), email=session.get("email"))
+        dataset_list = app.db.datasets.find({"user-id": session["email"]})
+        dataset_name_list = []
+        for dataset in dataset_list:
+            dataset_name_list.append(dataset["dataset-name"])
+        print(dataset_name_list)
+        return render_template("index.html", filename=session.get("image-path"), email=session.get("email"), dataset_list=dataset_name_list, dataset_name=session["dataset-name"])
 
     #Directs user to the help page
     @app.route('/help')
@@ -48,8 +51,8 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        app.db.datasets.delete_many({"unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
-        app.db.realdatavalues.delete_many({"unique-session-id": session["unique-session-id"], "dataset-name": "temp"})
+        if session.get("image-name"):
+            app.db.datasets.delete_many({"filename": session["image-name"]})
         files = glob.glob('static/uploads/*')
         for f in files:
             os.remove(f)
@@ -64,14 +67,11 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                if session["dataset-name"] != "temp":
-                    app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, { "$set": { "filename": filename}})
-                else:
-                    app.db.datasets.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None})
+                app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
                 session["image-path"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 session["image-name"] = filename
                 #s3.download_file(Bucket=BUCKET_NAME, Key=filename, Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return render_template('index.html', filename=session.get("image-path"), email=session.get("email"))
+        return redirect(url_for("home"))
 
     #Modifies the src route to image on html file
     @app.route('/display/<filename>')
@@ -84,14 +84,14 @@ def create_app():
     def axes_calibration():
         axesInfo = request.data.decode()
         axesInfo = re.sub(r'\[', '', re.sub(']', '', axesInfo)).split(',')
-        app.db.datasets.update_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]}, {"$set": { "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])}})
+        app.db.datasets.update_one({"user-id": session["email"], "filename": session["image-name"]}, {"$set": { "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])}})
         return render_template("index.html")
 
     #Called after axes calibration
     #Axes values are stored in an array from a form input and is stored in another collection on the database
     @app.route('/data_calibration', methods =["GET", "POST"])
     def data_calibration():
-        app.db.datasets.update_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]},{"$set": { "min-x-val": int(request.form.get("minX")), "max-x-val": int(request.form.get("maxX")), "min-y-val": int(request.form.get("minY")), "max-y-val": int(request.form.get("maxY"))} })
+        app.db.datasets.update_one({"filename": session["image-name"]},{"$set": { "min-x-val": int(request.form.get("minX")), "max-x-val": int(request.form.get("maxX")), "min-y-val": int(request.form.get("minY")), "max-y-val": int(request.form.get("maxY"))} })
         return render_template("index.html")
 
     #Called everytime user clicks on screen after set up
@@ -100,7 +100,8 @@ def create_app():
     def get_point():
         pointInfo = request.data.decode()
         tempArray = CalculatePointvalue(pointInfo)
-        app.db.realdatavalues.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": session["image-name"], "X": tempArray[0], "Y": tempArray[1]})
+        app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"X": tempArray[0]}})
+        app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"Y": tempArray[1]}})
         return render_template("index.html")
 
     #Called when user clicks export databse, ExportTOCSV function is called and sends path to the site
@@ -126,7 +127,6 @@ def create_app():
                 session["email"] = email
                 if(session.get("image-name")):
                     app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
-                    app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
                 return redirect(url_for("home"))
             else:
                 flash("Incorrect e-mail or password.")
@@ -145,7 +145,6 @@ def create_app():
                 session["email"] = email
                 if(session.get("image-name")):
                     app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
-                    app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
                 return redirect(url_for("home"))
         return render_template("signup.html")
 
@@ -166,16 +165,35 @@ def create_app():
             session["dataset-name"] = datasetname
             if session.get("image-name"):
                 print("dataset updated")
-                app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
-                app.db.realdatavalues.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
-            else:
-                app.db.datasets.insert_one({"user-id": session["email"], "unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"], "filename": None, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None})
+                if session["dataset-name"] != "temp":
+                    app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": session["image-name"], "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+                else:
+                    app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
+        return redirect(url_for("home"))
+
+    @app.route('/select_dataset', methods=['GET', 'POST'])
+    def select_dataset():
+        datasetname = request.form.get("dataset")
+        session["dataset-name"] = str(datasetname)
+        print(session["dataset-name"])
+        return redirect(url_for("home"))
+
+    @app.route('/delete_dataset', methods=['GET', 'POST'])
+    def delete_dataset():
+        datasetname = request.form.get("dataset")
+        app.db.datasets.delete_one({"user-id": session["email"], "dataset-name": str(datasetname)})
+        if app.db.datasets.count_documents({"user-id": session["email"]}):
+            tempdataset = app.db.datasets.find_one({"user-id": session["email"]})
+            session["dataset-name"] = tempdataset["dataset-name"]
+        else:
+            session["dataset-name"] = "temp"
+            app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": session["image-name"], "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
         return redirect(url_for("home"))
 
     #Function used to get the real data value of a point selected by the user, returns the xy values as array
     #Fields are filtered using the unique-session-id and dataset-name
     def CalculatePointvalue(pointAxes: str):
-        datasetEntry = app.db.datasets.find_one({"unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]})
+        datasetEntry = app.db.datasets.find_one({"filename": session["image-name"]})
         pointData = pointAxes.strip('][').split(',')
         pointX = int(pointData[0])
         pointY = int(pointData[1])
@@ -190,14 +208,14 @@ def create_app():
         file = open('graph.csv', 'w', newline='')
         writer = csv.writer(file)
         writer.writerow(graphHeader)
-        for graphData in app.db.realdatavalues.find({"unique-session-id": session["unique-session-id"], "dataset-name": session["dataset-name"]}):
-            writer.writerow([graphData["X"],graphData["Y"]])
+        graphData = app.db.datasets.find_one({"filename": session["image-name"]})
+        for i in range(0, len(graphData["X"])):
+            writer.writerow([graphData["X"][i],graphData["Y"][i]])
         file.close()
 
     def DatabaseReset():
         session.clear()
         app.db.datasets.delete_many({})
-        app.db.realdatavalues.delete_many({})
         app.db.users.delete_many({})
 
     return app
