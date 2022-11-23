@@ -163,12 +163,11 @@ def create_app():
             print("a database with the same name already exists")
         else:
             session["dataset-name"] = datasetname
-            if session.get("image-name"):
+            if not session.get("image-name"):
                 print("dataset updated")
-                if session["dataset-name"] != "temp":
-                    app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": session["image-name"], "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
-                else:
-                    app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
+                app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": None, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+            else:
+                app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
         return redirect(url_for("home"))
 
     @app.route('/select_dataset', methods=['GET', 'POST'])
@@ -187,7 +186,6 @@ def create_app():
             session["dataset-name"] = tempdataset["dataset-name"]
         else:
             session["dataset-name"] = "temp"
-            app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": session["image-name"], "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
         return redirect(url_for("home"))
 
     #Function used to get the real data value of a point selected by the user, returns the xy values as array
