@@ -9,6 +9,7 @@ import uuid
 import boto3
 import glob
 from Automata import GetAutoPoint
+from passlib.hash import pbkdf2_sha256
 
 load_dotenv()
 
@@ -21,7 +22,7 @@ def create_app():
     BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
     client = MongoClient(os.environ.get("MONGODB_URI"))
     app.db = client.datadigitizer
-    UPLOAD_FOLDER = 'static/uploads/'
+    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
     app.secret_key = "secret key"
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -69,7 +70,7 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                if not session.get("dataset-name"):
+                if session.get("dataset-name") == "temp":
                     app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
                 else:
                     app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, {"$set" : {"filename" : filename}})
@@ -106,7 +107,7 @@ def create_app():
         tempArray = CalculatePointvalue(pointInfo)
         app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"X": tempArray[0]}})
         app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"Y": tempArray[1]}})
-        return render_template("index.html")
+        return redirect(url_for("home"))
 
     #Called when user clicks export databse, ExportTOCSV function is called and sends path to the site
     @app.route('/download')
@@ -127,7 +128,7 @@ def create_app():
             user = app.db.users.find_one({"user-id": email})
             if user is None:
                 flash("Incorrect e-mail or password.")
-            elif user["password"] == password:
+            elif pbkdf2_sha256.verify(password, user["password"]):
                 session["email"] = email
                 if(session.get("image-name")):
                     app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
@@ -141,7 +142,7 @@ def create_app():
     def signup():
         if request.method == "POST":
             email = request.form.get("email")
-            password = request.form.get("password")
+            password = pbkdf2_sha256.hash(request.form.get("password"))
             if app.db.users.count_documents({"user-id": email}):
                 flash("Error: This account already exists")
             else:
@@ -202,9 +203,13 @@ def create_app():
 
     @app.route('/auto_extract')
     def auto_extract():
-        coordArray = GetAutoPoint(session["image-path"], app.db.datasets.find_one({"filename": session["image-name"]}))
-        print(f"({coordArray[0]}, {coordArray[1]}), ({coordArray[2]}, {coordArray[3]})")
-        return redirect(url_for("home"))
+        file = app.db.datasets.find_one({"filename": session["image-name"]})
+        if file["min-x-val"] is not None:
+            GetAutoPoint(session["image-path"], app.db.datasets.find_one({"filename": session["image-name"]}))
+            path = "graph.csv"
+            return send_file(path, as_attachment = True)
+        else:
+            return redirect(url_for("home"))
 
     #Function used to get the real data value of a point selected by the user, returns the xy values as array
     #Fields are filtered using the unique-session-id and dataset-name

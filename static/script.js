@@ -100,8 +100,10 @@ function recordCoords(event) {
     const xhr = new XMLHttpRequest();
     if(axesCoords.length < 4 && callibrateAxesActivated)
     {
-        var x = event.clientX;
-        var y = event.clientY;  
+        let rect = event.target.getBoundingClientRect();
+        let x = Math.round(event.clientX - rect.left);
+        let y = Math.round(event.clientY - rect.top); 
+        console.log(x, y) 
         var tempCoord = [x, y]
         axesCoords.push(tempCoord)
         var coords = "X coords: " + x + ", Y coords: " + y;
@@ -138,8 +140,9 @@ function recordCoords(event) {
                 background: '#000000'
             })              
         );
-        var x = event.clientX;
-        var y = event.clientY;  
+        let rect = event.target.getBoundingClientRect();
+        let x = Math.round(event.clientX - rect.left);
+        let y = Math.round(event.clientY - rect.top);
         tempCoord = [x, y]
         sender = JSON.stringify(tempCoord)
         xhr.open('POST', '/get_point');
@@ -253,6 +256,15 @@ function getPointValue()
     
 };
 
+function getAutoValue()
+{
+    if (axesCoords.length != 4)
+    {
+        alert("Please callibrate axes first");
+    };
+    
+};
+
 //Mouse Coordinates display
 //Gets relative mouse coordinate within the image container
 function getPos(e){
@@ -266,3 +278,4 @@ function getPos(e){
 function stopTracking(){
     document.getElementById("display-coord").innerHTML="";
 }
+
