@@ -17,7 +17,7 @@ def create_app():
         aws_access_key_id=os.environ.get("AWS_ACCESS_KEY"),
         aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY")
     )
-    BUCKET_NAME = "datadigitizer-images"
+    BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
     client = MongoClient(os.environ.get("MONGODB_URI"))
     app.db = client.datadigitizer
     UPLOAD_FOLDER = 'static/uploads/'
@@ -52,7 +52,8 @@ def create_app():
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
         if session.get("image-name"):
-            app.db.datasets.delete_many({"filename": session["image-name"]})
+            s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
+            app.db.datasets.delete_many({"user-id": "temp", "filename": session["image-name"]})
         files = glob.glob('static/uploads/*')
         for f in files:
             os.remove(f)
@@ -67,10 +68,12 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+                if not session.get("dataset-name"):
+                    app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+                else:
+                    app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, {"$set" : {"filename" : filename}})
                 session["image-path"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 session["image-name"] = filename
-                #s3.download_file(Bucket=BUCKET_NAME, Key=filename, Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return redirect(url_for("home"))
 
     #Modifies the src route to image on html file
@@ -85,14 +88,14 @@ def create_app():
         axesInfo = request.data.decode()
         axesInfo = re.sub(r'\[', '', re.sub(']', '', axesInfo)).split(',')
         app.db.datasets.update_one({"user-id": session["email"], "filename": session["image-name"]}, {"$set": { "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])}})
-        return render_template("index.html")
+        return redirect(url_for("home"))
 
     #Called after axes calibration
     #Axes values are stored in an array from a form input and is stored in another collection on the database
     @app.route('/data_calibration', methods =["GET", "POST"])
     def data_calibration():
         app.db.datasets.update_one({"filename": session["image-name"]},{"$set": { "min-x-val": int(request.form.get("minX")), "max-x-val": int(request.form.get("maxX")), "min-y-val": int(request.form.get("minY")), "max-y-val": int(request.form.get("maxY"))} })
-        return render_template("index.html")
+        return redirect(url_for("home"))
 
     #Called everytime user clicks on screen after set up
     #Each point is stored as a record in a database
@@ -162,24 +165,32 @@ def create_app():
         if app.db.datasets.count_documents({"dataset-name": datasetname}):
             print("a database with the same name already exists")
         else:
+            if session["email"] == "temp":
+                s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
             session["dataset-name"] = datasetname
-            if not session.get("image-name"):
-                print("dataset updated")
-                app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": None, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
-            else:
-                app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "dataset-name": session["dataset-name"] }})
+            app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": None, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+            session["image-name"] = None
+            session["image-path"] = None
         return redirect(url_for("home"))
 
     @app.route('/select_dataset', methods=['GET', 'POST'])
     def select_dataset():
         datasetname = request.form.get("dataset")
         session["dataset-name"] = str(datasetname)
-        print(session["dataset-name"])
+        selectedDataset = app.db.datasets.find_one({"dataset-name": session["dataset-name"]})
+        if selectedDataset["filename"] is not None:
+            s3.download_file(Bucket=BUCKET_NAME, Key=selectedDataset["filename"], Filename=os.path.join(app.config['UPLOAD_FOLDER'], selectedDataset["filename"]))
+            session["image-path"] = os.path.join(app.config['UPLOAD_FOLDER'], selectedDataset["filename"])
+            session["image-name"] = selectedDataset["filename"]
+        print(f"{session['dataset-name']} selected")
+        print(session["image-name"])
         return redirect(url_for("home"))
 
     @app.route('/delete_dataset', methods=['GET', 'POST'])
     def delete_dataset():
         datasetname = request.form.get("dataset")
+        deleteDataset = app.db.datasets.find_one({"user-id": session["email"], "dataset-name": str(datasetname)})
+        s3.delete_object(Bucket=BUCKET_NAME, Key=deleteDataset["filename"])
         app.db.datasets.delete_one({"user-id": session["email"], "dataset-name": str(datasetname)})
         if app.db.datasets.count_documents({"user-id": session["email"]}):
             tempdataset = app.db.datasets.find_one({"user-id": session["email"]})
