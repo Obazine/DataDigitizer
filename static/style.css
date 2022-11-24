@@ -253,6 +253,8 @@ body {
 
 #dataset-display {
   margin-left: 20px;
+  z-index: 8;
+  position: absolute;
 }
 
 .dataset-list-options {
