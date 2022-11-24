@@ -14,6 +14,7 @@ body {
     height: 100%;
     width: 1200px;
     margin: 0 auto;
+    overflow-x: auto;
 }
 
 #particles {
@@ -240,10 +241,10 @@ body {
 }
 
 #graph-image {
-  max-width:100%;
-  max-height:100%;
+  min-width:100%;
+  min-height:100%;
   margin: auto;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 #graph-screen :hover {

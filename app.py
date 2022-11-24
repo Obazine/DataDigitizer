@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import uuid
 import boto3
 import glob
+from Automata import GetAutoPoint
 
 load_dotenv()
 
@@ -197,6 +198,12 @@ def create_app():
             session["dataset-name"] = tempdataset["dataset-name"]
         else:
             session["dataset-name"] = "temp"
+        return redirect(url_for("home"))
+
+    @app.route('/auto_extract')
+    def auto_extract():
+        coordArray = GetAutoPoint(session["image-path"], app.db.datasets.find_one({"filename": session["image-name"]}))
+        print(f"({coordArray[0]}, {coordArray[1]}), ({coordArray[2]}, {coordArray[3]})")
         return redirect(url_for("home"))
 
     #Function used to get the real data value of a point selected by the user, returns the xy values as array
