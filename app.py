@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 import uuid
 import boto3
 import glob
-from Automata import GetAutoPoint
 from passlib.hash import pbkdf2_sha256
+from autoextract import autoFind
 
 load_dotenv()
 
@@ -55,7 +55,7 @@ def create_app():
     def upload_image(): 
         if session.get("image-name"):
             s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
-            app.db.datasets.delete_many({"user-id": "temp", "filename": session["image-name"]})
+            app.db.datasets.delete_many({"filename": session["image-name"]})
         files = glob.glob('static/uploads/*')
         for f in files:
             os.remove(f)
@@ -201,11 +201,12 @@ def create_app():
             session["dataset-name"] = "temp"
         return redirect(url_for("home"))
 
-    @app.route('/auto_extract')
+    @app.route('/auto_extract', methods=['GET', 'POST'])
     def auto_extract():
+        linecolour = request.form.get("graph-colour")
         file = app.db.datasets.find_one({"filename": session["image-name"]})
         if file["min-x-val"] is not None:
-            GetAutoPoint(session["image-path"], app.db.datasets.find_one({"filename": session["image-name"]}))
+            autoFind(linecolour, session["image-path"], file)
             path = "graph.csv"
             return send_file(path, as_attachment = True)
         else:
@@ -218,8 +219,8 @@ def create_app():
         pointData = pointAxes.strip('][').split(',')
         pointX = int(pointData[0])
         pointY = int(pointData[1])
-        calculatedXValue = round((pointX - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) - datasetEntry["min-x-val"], 3)
-        calculatedYValue = round((pointY - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) - datasetEntry["min-y-val"], 3)
+        calculatedXValue = round((pointX - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) + datasetEntry["min-x-val"], 3)
+        calculatedYValue = round((pointY - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) + datasetEntry["min-y-val"], 3)
         tempArray = [calculatedXValue, calculatedYValue]
         return(tempArray)
     

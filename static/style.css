@@ -10,10 +10,10 @@
 
 body {
     margin: 0;
+    overflow: hidden;
     height: 625px;
     width: 1200px;
     margin: 0 auto;
-    overflow-x: auto;
     overflow-y: auto;
 }
 
@@ -241,10 +241,10 @@ body {
 }
 
 #graph-image {
-  min-width:100%;
-  min-height:100%;
+  max-width:100%;
+  max-height:100%;
   margin: auto;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 #graph-screen :hover {

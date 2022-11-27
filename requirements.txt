@@ -16,7 +16,7 @@ jmespath==1.0.1
 kiwisolver==1.4.4
 MarkupSafe==2.1.1
 numpy==1.23.3
-opencv-python==4.6.0.66
+opencv-python-headless
 packaging==21.3
 passlib==1.7.4
 Pillow==9.2.0

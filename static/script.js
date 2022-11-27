@@ -241,6 +241,21 @@ function closeDeleteDatasetForm() {
     document.getElementById("dataset-delection-form").style.display = "none";
 };
 
+//Auto Extract form
+function openAutoExtractForm() {
+    if(!document.getElementById("username"))
+    {
+        alert("Please log in or sign in first");
+    }
+    else 
+    {
+        document.getElementById("auto-extract-form").style.display = "block";
+    };
+};
+function closeAutoExtractForm() {
+    document.getElementById("auto-extract-form").style.display = "none";
+};
+
 
 //Get Point Value Function
 //Checks if axes have been calibrated first, then sets a bool variable to true, activating the get point function everytime mouse clicks on image
