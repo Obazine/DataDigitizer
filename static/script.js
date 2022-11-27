@@ -69,14 +69,14 @@ class Particle {
 //A copy of the image is created, it is then enlarged and an offset value is calculated so that the centre is the same as cursor pointer
 var mainImg = document.getElementById("graph-image");
 var preview = document.querySelector(".zoom-preview");
-var x = preview.offsetWidth / 100;
-var y = preview.offsetHeight / 100;
+var x = preview.offsetWidth / 50;
+var y = preview.offsetHeight / 50;
 mainImg.addEventListener("mousemove", (e) => {
     preview.style.backgroundImage = `url(${mainImg.src})`;
     preview.style.backgroundSize = mainImg.width * x + 
       "px " + mainImg.height * y + "px";
-    var posX = e.offsetX - 50;
-    var posY = e.offsetY - 50;
+    var posX = e.offsetX - 25;
+    var posY = e.offsetY - 25;
     preview.style.backgroundPosition = "-" + posX * x + 
         "px -" + posY * y + "px";
 });
