@@ -30,7 +30,7 @@ def create_app():
     #If both are still temp when user starts new image, previous data will be deleted on the database.
     @app.route('/')
     def home():
-        #DatabaseReset()
+        DatabaseReset()
         if not session.get("email"):
             session["email"] = "temp"
         if not session.get("dataset-name"):
@@ -53,12 +53,10 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        if session.get("image-name"):
+        if session.get("image-name") and session["dataset-name"] == "temp":
             s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
             app.db.datasets.delete_many({"filename": session["image-name"]})
-        files = glob.glob('static/uploads/*')
-        for f in files:
-            os.remove(f)
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], session["image-name"]))
         if request.method == 'POST':
             img = request.files['file']
         if img:
@@ -74,7 +72,6 @@ def create_app():
                     app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
                 else:
                     app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, {"$set" : {"filename" : filename}})
-                session["image-path"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 session["image-name"] = filename
         return redirect(url_for("home"))
 
@@ -172,7 +169,6 @@ def create_app():
             session["dataset-name"] = datasetname
             app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": None, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
             session["image-name"] = None
-            session["image-path"] = None
         return redirect(url_for("home"))
 
     @app.route('/select_dataset', methods=['GET', 'POST'])
@@ -182,10 +178,7 @@ def create_app():
         selectedDataset = app.db.datasets.find_one({"dataset-name": session["dataset-name"]})
         if selectedDataset["filename"] is not None:
             s3.download_file(Bucket=BUCKET_NAME, Key=selectedDataset["filename"], Filename=os.path.join(app.config['UPLOAD_FOLDER'], selectedDataset["filename"]))
-            session["image-path"] = os.path.join(app.config['UPLOAD_FOLDER'], selectedDataset["filename"])
             session["image-name"] = selectedDataset["filename"]
-        print(f"{session['dataset-name']} selected")
-        print(session["image-name"])
         return redirect(url_for("home"))
 
     @app.route('/delete_dataset', methods=['GET', 'POST'])
@@ -197,6 +190,7 @@ def create_app():
         if app.db.datasets.count_documents({"user-id": session["email"]}):
             tempdataset = app.db.datasets.find_one({"user-id": session["email"]})
             session["dataset-name"] = tempdataset["dataset-name"]
+            session["image-name"] = tempdataset["filename"]
         else:
             session["dataset-name"] = "temp"
         return redirect(url_for("home"))
@@ -206,7 +200,7 @@ def create_app():
         linecolour = request.form.get("graph-colour")
         file = app.db.datasets.find_one({"filename": session["image-name"]})
         if file["min-x-val"] is not None:
-            autoFind(linecolour, session["image-path"], file)
+            autoFind(linecolour, os.path.join(app.config['UPLOAD_FOLDER'], session["image-name"]), file)
             path = "graph.csv"
             return send_file(path, as_attachment = True)
         else:
