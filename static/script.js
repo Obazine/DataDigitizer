@@ -226,6 +226,7 @@ function closeSelectDatasetForm() {
     document.getElementById("dataset-selection-form").style.display = "none";
 };
 
+
 //Dataset Delection form
 function openDeleteDatasetForm() {
     if(!document.getElementById("username"))
@@ -293,4 +294,3 @@ function getPos(e){
 function stopTracking(){
     document.getElementById("display-coord").innerHTML="";
 }
-

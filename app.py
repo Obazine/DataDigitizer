@@ -7,9 +7,10 @@ import csv
 from dotenv import load_dotenv
 import uuid
 import boto3
-import glob
+from botocore.client import Config
 from passlib.hash import pbkdf2_sha256
 from autoextract import autoFind
+import glob
 
 load_dotenv()
 
@@ -17,7 +18,9 @@ def create_app():
     app = Flask(__name__)
     s3 = boto3.client('s3',
         aws_access_key_id=os.environ.get("AWS_ACCESS_KEY"),
-        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY")
+        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        config=Config(signature_version='s3v4'),
+        region_name='eu-west-2'
     )
     BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
     client = MongoClient(os.environ.get("MONGODB_URI"))
@@ -35,12 +38,16 @@ def create_app():
             session["email"] = "temp"
         if not session.get("dataset-name"):
             session["dataset-name"] = "temp"
+        if session.get("image-name"):
+            filename = create_presigned_url(BUCKET_NAME, session["image-name"])
+        else:
+            filename=''
         dataset_list = app.db.datasets.find({"user-id": session["email"]})
         dataset_name_list = []
         for dataset in dataset_list:
             dataset_name_list.append(dataset["dataset-name"])
         print(dataset_name_list)
-        return render_template("index.html", filename=session.get("image-path"), email=session.get("email"), dataset_list=dataset_name_list, dataset_name=session["dataset-name"])
+        return render_template("index.html", filename=filename, email=session.get("email"), dataset_list=dataset_name_list, dataset_name=session["dataset-name"])
 
     #Directs user to the help page
     @app.route('/help')
@@ -56,7 +63,6 @@ def create_app():
         if session.get("image-name") and session["dataset-name"] == "temp":
             s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
             app.db.datasets.delete_many({"filename": session["image-name"]})
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], session["image-name"]))
         if request.method == 'POST':
             img = request.files['file']
         if img:
@@ -73,12 +79,10 @@ def create_app():
                 else:
                     app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, {"$set" : {"filename" : filename}})
                 session["image-name"] = filename
+                files = glob.glob('static/uploads/*')
+                for f in files:
+                    os.remove(f)
         return redirect(url_for("home"))
-
-    #Modifies the src route to image on html file
-    @app.route('/display/<filename>')
-    def display_image(filename):
-        return redirect(url_for('static', filename='uploads/' + filename), code=301)
 
     #Called when user clicks axes calibration
     #Mouse click coordinates are stored in an array, and these values are stored in a collection on the database
@@ -177,7 +181,6 @@ def create_app():
         session["dataset-name"] = str(datasetname)
         selectedDataset = app.db.datasets.find_one({"dataset-name": session["dataset-name"]})
         if selectedDataset["filename"] is not None:
-            s3.download_file(Bucket=BUCKET_NAME, Key=selectedDataset["filename"], Filename=os.path.join(app.config['UPLOAD_FOLDER'], selectedDataset["filename"]))
             session["image-name"] = selectedDataset["filename"]
         return redirect(url_for("home"))
 
@@ -199,6 +202,7 @@ def create_app():
     def auto_extract():
         linecolour = request.form.get("graph-colour")
         file = app.db.datasets.find_one({"filename": session["image-name"]})
+        s3.download_file(Bucket=BUCKET_NAME, Key=file["filename"], Filename=os.path.join(app.config['UPLOAD_FOLDER'], file["filename"]))
         if file["min-x-val"] is not None:
             autoFind(linecolour, os.path.join(app.config['UPLOAD_FOLDER'], session["image-name"]), file)
             path = "graph.csv"
@@ -228,6 +232,10 @@ def create_app():
         for i in range(0, len(graphData["X"])):
             writer.writerow([graphData["X"][i],graphData["Y"][i]])
         file.close()
+
+    def create_presigned_url(bucket_name, object_name, expiration=3600):
+        response = s3.generate_presigned_url('get_object', Params={'Bucket': BUCKET_NAME, 'Key': session["image-name"]}, ExpiresIn = expiration)
+        return response
 
     def DatabaseReset():
         session.clear()
