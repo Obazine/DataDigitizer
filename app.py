@@ -30,7 +30,7 @@ def create_app():
     #If both are still temp when user starts new image, previous data will be deleted on the database.
     @app.route('/')
     def home():
-        DatabaseReset()
+        #DatabaseReset()
         if not session.get("email"):
             session["email"] = "temp"
         if not session.get("dataset-name"):
