@@ -16,9 +16,9 @@ def autoFind(colour, imagePath, datasetEntry):
         resizeFactorX = containerX / dimensions[1]
         resizeFactorY = containerY / dimensions[0]
         resizeFactor = min(resizeFactorX, resizeFactorY)
-    lower_red = np.array([b-10,g-10,r-10])  
-    upper_red = np.array([b+10,g+10,r+10]) 
-    mask = cv2.inRange(image, lower_red, upper_red)  
+    lower = np.array([b-10,g-10,r-10])  
+    upper = np.array([b+10,g+10,r+10]) 
+    mask = cv2.inRange(image, lower, upper)  
     coords=cv2.findNonZero(mask)
     pointsArray = []
     for coord in coords:
