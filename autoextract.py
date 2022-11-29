@@ -26,7 +26,7 @@ def autoFind(colour, imagePath, datasetEntry):
         coord = filter(None, coord)
         try:
             point = list(map(int, coord))
-            pointsArray.append([round((point[0]*resizeFactor - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) + datasetEntry["min-x-val"],datasetEntry["sig-val"]),round((point[1]*resizeFactor - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) + datasetEntry["min-y-val"],datasetEntry["sig-val"])])
+            pointsArray.append([round(float((point[0]*resizeFactor - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) + datasetEntry["min-x-val"]), datasetEntry["dp-val"]), round(float((point[1]*resizeFactor - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) + datasetEntry["min-y-val"]), datasetEntry["dp-val"])])
         except:
             break
     graphHeader = [datasetEntry["x-label"], datasetEntry["y-label"]]
