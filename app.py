@@ -60,7 +60,7 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        if session.get("image-name") or session["dataset-name"] == "temp":
+        if session.get("image-name") and session["email"] == "temp":
             s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
             app.db.datasets.delete_many({"filename": session["image-name"]})
         if request.method == 'POST':
