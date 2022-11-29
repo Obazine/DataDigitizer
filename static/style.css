@@ -119,6 +119,20 @@ body {
   outline: none;
 }
 
+.form-container input[type=text]{
+  width: 90%;
+  padding: 10px;
+  margin: 7px 0 22px 0;
+  border: none;
+  background: #f1f1f1;
+}
+
+.form-container input[type=text]:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+
 .form-container .btn {
   background-color: #04AA6D;
   color: white;
@@ -138,7 +152,7 @@ body {
   opacity: 1;
 }
 
-.create-dataset-form {
+.dataset-form {
   display: none;
   position: fixed;
   top: 0;
@@ -292,7 +306,15 @@ body {
   margin: 20px;
 }
 
-.help-main li {
+.help-main a {
+  display: block;
+  font-size: x-large;
+  text-align: center;
+  margin: 20px;
+  color: #f1f1f1;
+}
+
+.help-main li{
   display: inline-block;
   padding: 10PX;
   line-height: 20px;

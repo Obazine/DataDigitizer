@@ -26,13 +26,14 @@ def autoFind(colour, imagePath, datasetEntry):
         coord = filter(None, coord)
         try:
             point = list(map(int, coord))
-            pointsArray.append([(point[0]*resizeFactor - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) + datasetEntry["min-x-val"],(point[1]*resizeFactor - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) + datasetEntry["min-y-val"]])
+            pointsArray.append([round((point[0]*resizeFactor - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) + datasetEntry["min-x-val"],datasetEntry["sig-val"]),round((point[1]*resizeFactor - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) + datasetEntry["min-y-val"],datasetEntry["sig-val"])])
         except:
             break
-    graphHeader = ['X', 'Y']
+    graphHeader = [datasetEntry["x-label"], datasetEntry["y-label"]]
     file = open('graph.csv', 'w', newline='')
     writer = csv.writer(file)
     writer.writerow(graphHeader)
     for i in range(0, len(pointsArray)):
         writer.writerow([pointsArray[i][0],pointsArray[i][1]])
     file.close()
+

@@ -60,7 +60,7 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        if session.get("image-name") and session["dataset-name"] == "temp":
+        if session.get("image-name") or session["dataset-name"] == "temp":
             s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
             app.db.datasets.delete_many({"filename": session["image-name"]})
         if request.method == 'POST':
@@ -74,10 +74,7 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                if session.get("dataset-name") == "temp":
-                    app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
-                else:
-                    app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, {"$set" : {"filename" : filename}})
+                app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "x-label": "X", "y-label": "Y", "dp-val": 3, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
                 session["image-name"] = filename
                 files = glob.glob('static/uploads/*')
                 for f in files:
@@ -171,7 +168,7 @@ def create_app():
             if session["email"] == "temp":
                 s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
             session["dataset-name"] = datasetname
-            app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": None, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+            app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": None, "x-label": "X", "y-label": "Y", "dp-val": 3, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
             session["image-name"] = None
         return redirect(url_for("home"))
 
@@ -198,6 +195,14 @@ def create_app():
             session["dataset-name"] = "temp"
         return redirect(url_for("home"))
 
+    @app.route('/axes_label', methods=['GET', 'POST'])
+    def axes_label():
+        xlabel = request.form.get("x-axis")
+        ylabel = request.form.get("y-axis")
+        dpVal = int(request.form.get("dp-value"))
+        app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "x-label": xlabel, "y-label": ylabel, "dp-val": dpVal }})
+        return redirect(url_for("home"))
+
     @app.route('/auto_extract', methods=['GET', 'POST'])
     def auto_extract():
         linecolour = request.form.get("graph-colour")
@@ -210,6 +215,23 @@ def create_app():
         else:
             return redirect(url_for("home"))
 
+    #Help routes
+    @app.route('/quickstart')
+    def quickstart():
+        return render_template("tutorials/quickstart.html", email=session.get("email"))
+    
+    @app.route('/axes_help')
+    def axes_help():
+        return render_template("tutorials/axes.html", email=session.get("email"))
+
+    @app.route('/measurements_help')
+    def measurements_help():
+        return render_template("tutorials/measurements.html", email=session.get("email"))
+
+    @app.route('/dataset_help')
+    def dataset_help():
+        return render_template("tutorials/datasets.html", email=session.get("email"))
+
     #Function used to get the real data value of a point selected by the user, returns the xy values as array
     #Fields are filtered using the unique-session-id and dataset-name
     def CalculatePointvalue(pointAxes: str):
@@ -217,14 +239,15 @@ def create_app():
         pointData = pointAxes.strip('][').split(',')
         pointX = int(pointData[0])
         pointY = int(pointData[1])
-        calculatedXValue = round((pointX - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) + datasetEntry["min-x-val"], 3)
-        calculatedYValue = round((pointY - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) + datasetEntry["min-y-val"], 3)
+        calculatedXValue = round((pointX - datasetEntry["min-x-coord"])/(datasetEntry["max-x-coord"] - datasetEntry["min-x-coord"]) * (datasetEntry["max-x-val"] - datasetEntry["min-x-val"]) + datasetEntry["min-x-val"], datasetEntry["dp-val"])
+        calculatedYValue = round((pointY - datasetEntry["min-y-coord"])/(datasetEntry["max-y-coord"] - datasetEntry["min-y-coord"]) * (datasetEntry["max-y-val"] - datasetEntry["min-y-val"]) + datasetEntry["min-y-val"], datasetEntry["dp-val"])
         tempArray = [calculatedXValue, calculatedYValue]
         return(tempArray)
     
     #Function to create a CSV file with all the xy points
     def ExportToCSV():
-        graphHeader = ['X', 'Y']
+        dataset = app.db.datasets.find_one({"filename": session["image-name"]})
+        graphHeader = [dataset["x-label"], dataset["y-label"]]
         file = open('graph.csv', 'w', newline='')
         writer = csv.writer(file)
         writer.writerow(graphHeader)
