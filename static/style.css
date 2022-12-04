@@ -93,7 +93,7 @@ body {
 }
 
 .form-container {
-  max-width: 300px;
+  max-width: 200px;
   padding: 10px;
   background-color: #575674;
 }
@@ -102,13 +102,13 @@ body {
   color: #f1f1f1;
 }
 
-.form-container h2 {
+.form-container h3 {
   color: #f1f1f1;
 }
 
 .form-container input[type=number]{
   width: 80%;
-  padding: 15px;
+  padding: 10px;
   margin: 5px 0 22px 0;
   border: none;
   background: #f1f1f1;

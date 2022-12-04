@@ -128,7 +128,7 @@ function recordCoords(event) {
         callibrateAxesActivated = false;
         openAxesForm();
     };
-    if(axesCoords.length == 4 && getPointValueActivated)
+    if((axesCoords.length == 4 || axescallibrated)&& getPointValueActivated)
     {
         $("body").append(            
             $('<div class="marker"></div>').css({      
@@ -265,7 +265,10 @@ let getPointValueActivated = false
 function getPointValue()
 {
     getPointValueActivated = true
-    if (axesCoords.length != 4)
+    if (axescallibrated)
+    {
+    }
+    else if (axesCoords.length != 4)
     {
         alert("Please callibrate axes first");
         getPointValueActivated = false;
@@ -275,7 +278,10 @@ function getPointValue()
 
 function getAutoValue()
 {
-    if (axesCoords.length != 4)
+    if (axescallibrated)
+    {
+    }
+    else if (axesCoords.length != 4)
     {
         alert("Please callibrate axes first");
     };

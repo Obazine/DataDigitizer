@@ -1,44 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Data Digitizer | Home</title>
-  <meta name = "viewport" content = "width=device-width, initial-scale=1.0" />
-  <meta http-equiv = "X-UA-Compatible" content = "ie = edge" />
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
-  <script src="https://code.jquery.com/jquery-3.5.1.js"
-          integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
-          crossorigin="anonymous"></script>
-  <link rel ="stylesheet" media ="screen" href ="\static\style.css"/>
-  <link rel="icon" type="image/svg+xml" href="static\icons\favicon.svg" />
-</head>
-<body>
-
-<!--Header-->
-<div class = "header">
-  <div class = "inner-header">
-    <div class = "logo-container">
-      <h1>Data Digitizer</h1>
-    </div>
-
-    <ul class = "header-navigation">
-      <a href="/" ><li>Home</li></a>
-      <a href="/help" ><li>Help</li></a>
-      {% if email != "temp"%}
-        <a href="#" ><li id="username">{{email}}</li></a>
-        <a href="/signout" ><li>Sign Out</li></a>
-      {% else %}
-        <a href="/login" ><li>Login</li></a>
-        <a href="/signup" ><li>Sign Up</li></a>
-      {% endif %}
-    </ul>
-  </div>
-</div>
-
+{% extends 'base.html' %}
+{% block main %}
 <!--Axes popup form-->
 <div class="axes-form-popup" id="axes-form">
   <form  method="post" class="form-container">
-    <h2>Please enter the values below</h2>
+    <h3>Please enter the values below</h3>
     <label for="min-x">Min-X</label>
     <input type="number" placeholder="Enter minimum X value" name = "min-x" id="min-x" required>
     <label for="max-x">Max-X</label>
@@ -171,13 +136,8 @@
   </div>
 </div>
 
-
-
-<div class = "footer">
-</div>
-
-
-
-<script src="\static\script.js"></script>
-</body>
-</html>
+<script>
+  var axescallibrated = "{{ axescallibrated }}";
+  console.log(axescallibrated)
+</script>
+{% endblock %}

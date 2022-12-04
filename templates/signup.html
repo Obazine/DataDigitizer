@@ -1,57 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <title>Data Digitizer | Home</title>
-    <meta name = "viewport" content = "width=device-width, initial-scale=1.0" />
-    <meta http-equiv = "X-UA-Compatible" content = "ie = edge" />
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
-    <link rel ="stylesheet" media ="screen" href ="\static\style.css"/>
-    <link rel="icon" type="image/svg+xml" href="static\icons\favicon.svg" />
-</head>
-
-<body>
-    <div class = "header">
-        <div class = "inner-header">
-            <div class = "logo-container">
-                <h1>Data Digitizer</h1>
-            </div>
-
-            <ul class = "header-navigation">
-                <a href="/" ><li>Home</li></a>
-                <a href="/help" ><li>Help</li></a>
-                {% if email %}
-                    <a href="#" ><li>Hello, {{email}}</li></a>
-                    <a href="/signout" ><li>Sign Out</li></a>
-                {% else %}
-                    <a href="/login" ><li>Login</li></a>
-                    <a href="/signup" ><li>Sign Up</li></a>
-                {% endif %}
-            </ul>
+{% extends 'base.html' %}
+{% block main %}
+<div class="content">
+    <div class = "help-main">
+        <div class="signin-form">
+            <form method="POST">
+                <div class="signin-form-container">
+                    <label for="email">E-mail</label>
+                    <input type="email" placeholder="Enter email" name="email" required/>
+                    <label for="password">Password</label>
+                    <input type="password" placeholder="Enter password" name="password" required/>
+                    {% for message in get_flashed_messages() %}
+                    <p>{{ message }}</p>
+                    {% endfor %}
+                    <button class="sign-in-form-btn" type="submit">Sign up</button>
+                </div>
+            </form>
+            <p><a href="{{ url_for('login') }}">Log in</a> instead</p>
         </div>
     </div>
-    
-    <div class="content">
-        <div class = "help-main">
-            <div class="signin-form">
-                <form method="POST">
-                    <div class="signin-form-container">
-                        <label for="email">E-mail</label>
-                        <input type="email" placeholder="Enter email" name="email" required/>
-                        <label for="password">Password</label>
-                        <input type="password" placeholder="Enter password" name="password" required/>
-                        {% for message in get_flashed_messages() %}
-                        <p>{{ message }}</p>
-                        {% endfor %}
-                        <button class="sign-in-form-btn" type="submit">Sign up</button>
-                    </div>
-                </form>
-                <p><a href="{{ url_for('login') }}">Log in</a> instead</p>
-            </div>
-        </div>
-    </div>
-<div class = "footer">
 </div>
-<script src="\static\script.js"></script>
-</body>
-</html>
+{% endblock %}

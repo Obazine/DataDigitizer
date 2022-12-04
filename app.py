@@ -34,12 +34,16 @@ def create_app():
     @app.route('/')
     def home():
         #DatabaseReset()
+        axescallibrated = False
         if not session.get("email"):
             session["email"] = "temp"
         if not session.get("dataset-name"):
             session["dataset-name"] = "temp"
         if session.get("image-name"):
             filename = create_presigned_url(BUCKET_NAME, session["image-name"])
+            dataset = app.db.datasets.find_one({"filename": session["image-name"]})
+            if dataset["max-y-val"] is not None:
+                axescallibrated = True
         else:
             filename=''
         dataset_list = app.db.datasets.find({"user-id": session["email"]})
@@ -47,12 +51,12 @@ def create_app():
         for dataset in dataset_list:
             dataset_name_list.append(dataset["dataset-name"])
         print(dataset_name_list)
-        return render_template("index.html", filename=filename, email=session.get("email"), dataset_list=dataset_name_list, dataset_name=session["dataset-name"])
+        return render_template("index.html", filename=filename, email=session.get("email"), dataset_list=dataset_name_list, dataset_name=session["dataset-name"], axescallibrated=axescallibrated, title="Home")
 
     #Directs user to the help page
     @app.route('/help')
     def help():
-        return render_template("help.html")
+        return render_template("help.html", email=session.get("email"),  title="Help")
 
     #The function is called when user tries to upload new image
     #All temp data is deleted from the dataset and local storage is also cleared
@@ -60,7 +64,7 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        if session.get("image-name") and session["email"] == "temp":
+        if session.get("image-name") and (session["dataset-name"] or session["dataset-name"] == "temp"):
             s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
             app.db.datasets.delete_many({"filename": session["image-name"]})
         if request.method == 'POST':
@@ -133,7 +137,7 @@ def create_app():
                 return redirect(url_for("home"))
             else:
                 flash("Incorrect e-mail or password.")
-        return render_template("login.html")
+        return render_template("login.html", email=session.get("email"),  title="Login")
 
     #Similar to login, just adds the user information into a collection in the database
     @app.route('/signup', methods=['GET', 'POST'])
@@ -149,7 +153,7 @@ def create_app():
                 if(session.get("image-name")):
                     app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "user-id": email }})
                 return redirect(url_for("home"))
-        return render_template("signup.html")
+        return render_template("signup.html", email=session.get("email"),  title="Sign Up")
 
     #Clears session data for the user
     @app.route('/signout')
@@ -218,19 +222,19 @@ def create_app():
     #Help routes
     @app.route('/quickstart')
     def quickstart():
-        return render_template("tutorials/quickstart.html", email=session.get("email"))
+        return render_template("tutorials/quickstart.html", email=session.get("email"),  title="Quickstart")
     
     @app.route('/axes_help')
     def axes_help():
-        return render_template("tutorials/axes.html", email=session.get("email"))
+        return render_template("tutorials/axes.html", email=session.get("email"),  title="Axes Help")
 
     @app.route('/measurements_help')
     def measurements_help():
-        return render_template("tutorials/measurements.html", email=session.get("email"))
+        return render_template("tutorials/measurements.html", email=session.get("email"),  title="Measurements Help")
 
     @app.route('/dataset_help')
     def dataset_help():
-        return render_template("tutorials/datasets.html", email=session.get("email"))
+        return render_template("tutorials/datasets.html", email=session.get("email"),  title="Dataset Help")
 
     #Function used to get the real data value of a point selected by the user, returns the xy values as array
     #Fields are filtered using the unique-session-id and dataset-name
