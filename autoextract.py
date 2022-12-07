@@ -3,7 +3,7 @@ import numpy as np
 import csv
 import re
 
-def autoFind(colour, imagePath, datasetEntry):
+def autoFind(colour, imagePath, datasetEntry, threshold):
     r = int(colour[1:3], 16)
     g = int(colour[3:5], 16)
     b = int(colour[5:7], 16)
@@ -16,8 +16,8 @@ def autoFind(colour, imagePath, datasetEntry):
         resizeFactorX = containerX / dimensions[1]
         resizeFactorY = containerY / dimensions[0]
         resizeFactor = min(resizeFactorX, resizeFactorY)
-    lower = np.array([b-10,g-10,r-10])  
-    upper = np.array([b+10,g+10,r+10]) 
+    lower = np.array([b-threshold,g-threshold,r-threshold])  
+    upper = np.array([b+threshold,g+threshold,r+threshold]) 
     mask = cv2.inRange(image, lower, upper)  
     coords=cv2.findNonZero(mask)
     pointsArray = []

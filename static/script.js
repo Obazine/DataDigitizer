@@ -301,3 +301,13 @@ function getPos(e){
 function stopTracking(){
     document.getElementById("display-coord").innerHTML="";
 }
+
+//Auto Extract slider
+var slider = document.getElementById("threshold");
+var output = document.getElementById("threshpreview");
+output.innerHTML = slider.value; // Display the default slider value
+
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+    output.innerHTML = this.value;
+}

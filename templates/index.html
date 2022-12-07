@@ -77,6 +77,9 @@
   <form method="post" class="form-container" action="{{ url_for('auto_extract') }}">
     <label for="graph-colour">Select the colour of your graph:</label>
     <input type="color" id="graph-colour" name="graph-colour" value="#ff0000"><br><br>
+    <label for="threshold">Threshold</label>
+    <input type="range" id="threshold" name="threshold" min="3" max="40" value="10">
+    <p>Value: <span id="threshpreview"></span></p>
     <button type="submit" class="btn">Submit</button>
     <button type="button" class="btn cancel" onClick="closeAutoExtractForm()">Close</button>
   </form>

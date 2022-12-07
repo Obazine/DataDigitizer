@@ -210,10 +210,11 @@ def create_app():
     @app.route('/auto_extract', methods=['GET', 'POST'])
     def auto_extract():
         linecolour = request.form.get("graph-colour")
+        threshold = request.form.get("threshold")
         file = app.db.datasets.find_one({"filename": session["image-name"]})
         s3.download_file(Bucket=BUCKET_NAME, Key=file["filename"], Filename=os.path.join(app.config['UPLOAD_FOLDER'], file["filename"]))
         if file["min-x-val"] is not None:
-            autoFind(linecolour, os.path.join(app.config['UPLOAD_FOLDER'], session["image-name"]), file)
+            autoFind(linecolour, os.path.join(app.config['UPLOAD_FOLDER'], session["image-name"]), file, int(threshold))
             path = "graph.csv"
             return send_file(path, as_attachment = True)
         else:
