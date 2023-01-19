@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block main %}
+<div class="content">
+    <div class = "help-main">
+        <div class="signin-form">
+            <form method="POST">
+                <div class="signin-form-container">
+                    <label for="password">Password</label>
+                    <input type="password" placeholder="Enter your new password" name="password" required/>
+                    {% for message in get_flashed_messages() %}
+                    <p>{{ message }}</p>
+                    {% endfor %}
+                    <button class="sign-in-form-btn" type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

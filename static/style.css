@@ -304,7 +304,10 @@ body {
   font-size: x-large;
   text-align: center;
   margin: 20px;
-  color: #f1f1f1;
+}
+
+.help-list {
+  color: rgb(241, 241, 241);
 }
 
 .help-main li{
@@ -334,14 +337,11 @@ body {
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
-.signin-form label {
+.signin-form p,.signin-form a,.signin-form label {
   color: #494B5E;
   line-height: 20px;
-  display: block;
-}
-
-.signin-form p {
-  color: #494B5E;
+  font-size: medium;
+  display: block
 }
 
 .signin-form-container {

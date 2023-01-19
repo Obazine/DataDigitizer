@@ -10,7 +10,10 @@ import boto3
 from botocore.client import Config
 from passlib.hash import pbkdf2_sha256
 from autoextract import autoFind
-import glob
+import glob   
+from flask_mail import Mail, Message
+import jwt
+from time import time
 
 load_dotenv()
 
@@ -28,6 +31,13 @@ def create_app():
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
     app.secret_key = "secret key"
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['MAIL_SERVER']='smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
+    app.config['MAIL_PASSWORD'] = os.environ.get("APP_PASSWORD")
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
+    mail = Mail(app)
 
     #The initial root that is directed to when the app starts. If a user is not logged on, then email and dataset-name is set to "temp". 
     #If both are still temp when user starts new image, previous data will be deleted on the database.
@@ -155,6 +165,28 @@ def create_app():
                 return redirect(url_for("home"))
         return render_template("signup.html", email=session.get("email"),  title="Sign Up")
 
+    @app.route('/password_reset', methods=['GET', 'POST'])
+    def password_reset():
+        if request.method == "POST":
+            email = request.form.get("email")
+            user = app.db.users.find_one({"user-id": email})
+            if user is None:
+                flash("This e-mail does not exist.")
+            else:
+                send_mail(email)
+                flash("An email has been sent to you with instructions on how to reset your password.")
+        return render_template("reset.html", email=session.get("email"),  title="Password Reset")
+
+    @app.route('/password_reset_verified/<token>', methods=['GET', 'POST'])
+    def password_reset_verified(token):
+        user = verify_reset_token(token)
+        if request.method == "POST":
+            password = pbkdf2_sha256.hash(request.form.get("password"))
+            app.db.users.update_one({"user-id": user}, {"$set": {"password": password}})
+            flash("Your password has been updated.")
+            return redirect(url_for("login"))
+        return render_template("reset_verified.html", email=session.get("email"),  title="Password Reset")
+
     #Clears session data for the user
     @app.route('/signout')
     def signout():
@@ -269,6 +301,37 @@ def create_app():
         session.clear()
         app.db.datasets.delete_many({})
         app.db.users.delete_many({})
+
+    def send_confirmation_email(user):
+        msg = Message()
+        msg.subject = "Account Creation Confirmation"
+        msg.sender = os.environ.get('MAIL_USERNAME')
+        msg.recipients = [user]
+        msg.body = "This is a confirmation email to confirm that you have created an account with DataDigitizer. If you did not create an account with Grapher, please ignore this email."
+        mail.send(msg)
+        return "Sent"
+
+    def send_mail(user):
+        token = get_reset_token(user)
+        msg = Message()
+        msg.subject = "Flask App Password Reset"
+        msg.sender = os.environ.get('MAIL_USERNAME')
+        msg.recipients = [user]
+        msg.html = render_template('reset_email.html', token=token, user=user)
+        mail.send(msg)
+        return "Sent"
+
+    def get_reset_token(user, expires_sec=1800):
+        return jwt.encode({'reset_password': user, 'exp': time() + expires_sec}, key = app.config['SECRET_KEY'])
+
+    def verify_reset_token(token):
+        try:
+            user = jwt.decode(token, key = app.config['SECRET_KEY'])['reset_password']
+            print(id)
+        except Exception as e:
+            print(e)
+            return
+        return user
 
     return app
     

@@ -3,7 +3,6 @@
 <div class="content">
     <div class = "help-main">
         <div class="signin-form">
-
             <form method="POST">
                 <div class="signin-form-container">
                     <label for="email">E-mail</label>
@@ -16,7 +15,8 @@
                     <button class="sign-in-form-btn" type="submit">Login</button>
                 </div>
             </form>
-            <p><a href="{{ url_for('signup') }}">Sign up</a> instead</p>
+            <a href="{{ url_for('signup') }}">Sign up instead</a>
+            <a href="{{ url_for('password_reset') }}">Forgot your password?</a>
         </div>
     </div>
 </div>

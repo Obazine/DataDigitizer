@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block main %}
+<div class="content">
+    <div class = "help-main">
+        <div class="signin-form">
+            <form method="POST">
+                <div class="signin-form-container">
+                    <p>Please enter the email you registered with. You will be sent an email that will allow you to reset your password.<br><br></p>
+                    <label for="email">E-mail</label>
+                    <input type="email" placeholder="Enter email" name="email" required/>
+                    {% for message in get_flashed_messages() %}
+                    <p>{{ message }}</p>
+                    {% endfor %}
+                    <button class="sign-in-form-btn" type="submit">Submit</button>
+                </div>
+            </form>
+            <a href="{{ url_for('signup') }}">Sign up</a>
+            <a href="{{ url_for('login') }}">Log in</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
