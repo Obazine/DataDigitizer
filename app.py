@@ -14,6 +14,7 @@ import glob
 from flask_mail import Mail, Message
 import jwt
 from time import time
+from threading import Thread
 
 load_dotenv()
 
@@ -59,7 +60,8 @@ def create_app():
         dataset_list = app.db.datasets.find({"user-id": session["email"]})
         dataset_name_list = []
         for dataset in dataset_list:
-            dataset_name_list.append(dataset["dataset-name"])
+            if dataset["dataset-name"] != "temp":
+                dataset_name_list.append(dataset["dataset-name"])
         print(dataset_name_list)
         return render_template("index.html", filename=filename, email=session.get("email"), dataset_list=dataset_name_list, dataset_name=session["dataset-name"], axescallibrated=axescallibrated, title="Home")
 
@@ -74,9 +76,6 @@ def create_app():
     #Current image is downloaded to the uploads folder so that the html file can display the newly uploaded image
     @app.route('/upload_image', methods=['POST'])
     def upload_image(): 
-        if session.get("image-name") and (session["dataset-name"] or session["dataset-name"] == "temp"):
-            s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
-            app.db.datasets.delete_many({"filename": session["image-name"]})
         if request.method == 'POST':
             img = request.files['file']
         if img:
@@ -88,7 +87,11 @@ def create_app():
                     Filename=os.path.join(app.config['UPLOAD_FOLDER'], filename),
                     Key=filename
                 )
-                app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "x-label": "X", "y-label": "Y", "dp-val": 3, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+                if session.get("image-name") and (session["dataset-name"] == "temp"):
+                    s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
+                    app.db.datasets.delete_many({"filename": session["image-name"]})
+                    app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "x-label": "X", "y-label": "Y", "dp-val": 3, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+                app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, {"$set": { "filename": filename }})
                 session["image-name"] = filename
                 files = glob.glob('static/uploads/*')
                 for f in files:
@@ -99,9 +102,9 @@ def create_app():
     #Mouse click coordinates are stored in an array, and these values are stored in a collection on the database
     @app.route('/axes_calibration', methods=['GET', 'POST'])
     def axes_calibration():
-        axesInfo = request.data.decode()
-        axesInfo = re.sub(r'\[', '', re.sub(']', '', axesInfo)).split(',')
-        app.db.datasets.update_one({"user-id": session["email"], "filename": session["image-name"]}, {"$set": { "min-x-coord": int(axesInfo[0]), "max-x-coord": int(axesInfo[2]), "min-y-coord": int(axesInfo[5]), "max-y-coord": int(axesInfo[7])}})
+        axes_info = request.data.decode()
+        axes_info = re.sub(r'\[', '', re.sub(']', '', axes_info)).split(',')
+        app.db.datasets.update_one({"user-id": session["email"], "filename": session["image-name"]}, {"$set": { "min-x-coord": int(axes_info[0]), "max-x-coord": int(axes_info[2]), "min-y-coord": int(axes_info[5]), "max-y-coord": int(axes_info[7])}})
         return redirect(url_for("home"))
 
     #Called after axes calibration
@@ -115,10 +118,10 @@ def create_app():
     #Each point is stored as a record in a database
     @app.route('/get_point', methods=['GET', 'POST'])
     def get_point():
-        pointInfo = request.data.decode()
-        tempArray = CalculatePointvalue(pointInfo)
-        app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"X": tempArray[0]}})
-        app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"Y": tempArray[1]}})
+        point_info = request.data.decode()
+        temp_array = CalculatePointvalue(point_info)
+        app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"X": temp_array[0]}})
+        app.db.datasets.update_one({"filename": session["image-name"]}, {"$push": {"Y": temp_array[1]}})
         return redirect(url_for("home"))
 
     #Called when user clicks export databse, ExportTOCSV function is called and sends path to the site
@@ -181,10 +184,15 @@ def create_app():
     def password_reset_verified(token):
         user = verify_reset_token(token)
         if request.method == "POST":
-            password = pbkdf2_sha256.hash(request.form.get("password"))
-            app.db.users.update_one({"user-id": user}, {"$set": {"password": password}})
-            flash("Your password has been updated.")
-            return redirect(url_for("login"))
+            password = request.form.get("password")
+            password_confirmed = request.form.get("password-confirmed")
+            if password != password_confirmed:
+                flash("Passwords do not match.")
+            else:
+                password = pbkdf2_sha256.hash(password)
+                app.db.users.update_one({"user-id": user}, {"$set": {"password": password}})
+                flash("Your password has been updated.")
+                return redirect(url_for("login"))
         return render_template("reset_verified.html", email=session.get("email"),  title="Password Reset")
 
     #Clears session data for the user
@@ -318,8 +326,12 @@ def create_app():
         msg.sender = os.environ.get('MAIL_USERNAME')
         msg.recipients = [user]
         msg.html = render_template('reset_email.html', token=token, user=user)
-        mail.send(msg)
+        Thread(target=send_async_email, args=(app, msg)).start()
         return "Sent"
+
+    def send_async_email(app, msg):
+        with app.app_context():
+            mail.send(msg)
 
     def get_reset_token(user, expires_sec=1800):
         return jwt.encode({'reset_password': user, 'exp': time() + expires_sec}, key = app.config['SECRET_KEY'])

@@ -7,6 +7,8 @@
                 <div class="signin-form-container">
                     <label for="password">Password</label>
                     <input type="password" placeholder="Enter your new password" name="password" required/>
+                    <label for="password-confirmed">Confirm Password</label>
+                    <input type="password" placeholder="Confirm your new password" name="password-confirmed" required/>
                     {% for message in get_flashed_messages() %}
                     <p>{{ message }}</p>
                     {% endfor %}
