@@ -45,6 +45,7 @@ def create_app():
     @app.route('/')
     def home():
         #DatabaseReset()
+        
         axescallibrated = False
         if not session.get("email"):
             session["email"] = "temp"
@@ -91,6 +92,8 @@ def create_app():
                     s3.delete_object(Bucket=BUCKET_NAME, Key=session["image-name"])
                     app.db.datasets.delete_many({"filename": session["image-name"]})
                     app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "x-label": "X", "y-label": "Y", "dp-val": 3, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
+                if not session.get("image-name"):
+                    app.db.datasets.insert_one({"user-id": session["email"], "dataset-name": session["dataset-name"], "filename": filename, "x-label": "X", "y-label": "Y", "dp-val": 3, "min-x-coord": None, "max-x-coord": None, "min-y-coord": None, "max-y-coord": None, "min-x-val": None, "max-x-val": None, "min-y-val": None, "max-y-val": None, "X": [], "Y": []})
                 app.db.datasets.update_one({"user-id": session["email"], "dataset-name": session["dataset-name"]}, {"$set": { "filename": filename }})
                 session["image-name"] = filename
                 files = glob.glob('static/uploads/*')
@@ -104,14 +107,14 @@ def create_app():
     def axes_calibration():
         axes_info = request.data.decode()
         axes_info = re.sub(r'\[', '', re.sub(']', '', axes_info)).split(',')
-        app.db.datasets.update_one({"user-id": session["email"], "filename": session["image-name"]}, {"$set": { "min-x-coord": int(axes_info[0]), "max-x-coord": int(axes_info[2]), "min-y-coord": int(axes_info[5]), "max-y-coord": int(axes_info[7])}})
+        app.db.datasets.update_one({"user-id": session["email"], "filename": session["image-name"]}, {"$set": { "min-x-coord": float(axes_info[0]), "max-x-coord": float(axes_info[2]), "min-y-coord": float(axes_info[5]), "max-y-coord": float(axes_info[7])}})
         return redirect(url_for("home"))
 
     #Called after axes calibration
     #Axes values are stored in an array from a form input and is stored in another collection on the database
     @app.route('/data_calibration', methods =["GET", "POST"])
     def data_calibration():
-        app.db.datasets.update_one({"filename": session["image-name"]},{"$set": { "min-x-val": int(request.form.get("minX")), "max-x-val": int(request.form.get("maxX")), "min-y-val": int(request.form.get("minY")), "max-y-val": int(request.form.get("maxY"))} })
+        app.db.datasets.update_one({"filename": session["image-name"]},{"$set": { "min-x-val": float(request.form.get("minX")), "max-x-val": float(request.form.get("maxX")), "min-y-val": float(request.form.get("minY")), "max-y-val": float(request.form.get("maxY"))} })
         return redirect(url_for("home"))
 
     #Called everytime user clicks on screen after set up
@@ -206,7 +209,8 @@ def create_app():
     @app.route('/create_dataset', methods=['GET', 'POST'])
     def create_dataset():
         datasetname = request.form.get("datasetName")
-        if app.db.datasets.count_documents({"dataset-name": datasetname}):
+        user = session.get("email")
+        if app.db.datasets.find_one({"user-id": session["email"], "dataset-name": datasetname}):
             print("a database with the same name already exists")
         else:
             if session["email"] == "temp":
@@ -216,20 +220,27 @@ def create_app():
             session["image-name"] = None
         return redirect(url_for("home"))
 
+    #Called when user clicks on select dataset
+    #Obtains the dataset to be selected from a form input.
+    #Changes the session variables to current dataset
     @app.route('/select_dataset', methods=['GET', 'POST'])
     def select_dataset():
         datasetname = request.form.get("dataset")
         session["dataset-name"] = str(datasetname)
-        selectedDataset = app.db.datasets.find_one({"dataset-name": session["dataset-name"]})
+        selectedDataset = app.db.datasets.find_one({"user-id": session["email"], "dataset-name": session["dataset-name"]})
         if selectedDataset["filename"] is not None:
             session["image-name"] = selectedDataset["filename"]
         return redirect(url_for("home"))
 
+    #Called when user clicks on delete dataset
+    #Obtains the dataset to be deleted from a form input.
+    #Deletes the dataset from the database and deletes the image from S3
     @app.route('/delete_dataset', methods=['GET', 'POST'])
     def delete_dataset():
         datasetname = request.form.get("dataset")
         deleteDataset = app.db.datasets.find_one({"user-id": session["email"], "dataset-name": str(datasetname)})
-        s3.delete_object(Bucket=BUCKET_NAME, Key=deleteDataset["filename"])
+        if(session.get("image-name") != None):
+            s3.delete_object(Bucket=BUCKET_NAME, Key=deleteDataset["filename"])
         app.db.datasets.delete_one({"user-id": session["email"], "dataset-name": str(datasetname)})
         if app.db.datasets.count_documents({"user-id": session["email"]}):
             tempdataset = app.db.datasets.find_one({"user-id": session["email"]})
@@ -237,8 +248,10 @@ def create_app():
             session["image-name"] = tempdataset["filename"]
         else:
             session["dataset-name"] = "temp"
+            session["image-name"] = None
         return redirect(url_for("home"))
 
+    #Route to customize the axes labels and allows user to select the number of decimal points on data
     @app.route('/axes_label', methods=['GET', 'POST'])
     def axes_label():
         xlabel = request.form.get("x-axis")
@@ -247,6 +260,7 @@ def create_app():
         app.db.datasets.update_one({"filename": session["image-name"]}, { "$set": { "x-label": xlabel, "y-label": ylabel, "dp-val": dpVal }})
         return redirect(url_for("home"))
 
+    #Route to allow the user to select the colour matching the graph. The image is downlaoded from the image database and so the python function can take it as a parameter.
     @app.route('/auto_extract', methods=['GET', 'POST'])
     def auto_extract():
         linecolour = request.form.get("graph-colour")
@@ -260,7 +274,7 @@ def create_app():
         else:
             return redirect(url_for("home"))
 
-    #Help routes
+    #Help routes 
     @app.route('/quickstart')
     def quickstart():
         return render_template("tutorials/quickstart.html", email=session.get("email"),  title="Quickstart")
@@ -301,22 +315,27 @@ def create_app():
             writer.writerow([graphData["X"][i],graphData["Y"][i]])
         file.close()
 
+    #Function to obtain a temporary link to the graph image from the database so that it can be displayed on the webpage.
+    #Created using the AWS S3 API
     def create_presigned_url(bucket_name, object_name, expiration=3600):
         response = s3.generate_presigned_url('get_object', Params={'Bucket': BUCKET_NAME, 'Key': session["image-name"]}, ExpiresIn = expiration)
         return response
 
+    #Function to reset database and session variables to test the program
     def DatabaseReset():
         session.clear()
         app.db.datasets.delete_many({})
         app.db.users.delete_many({})
 
+    #The two functions below define the email properties to send an email to the user for account creation and password reset.
+    #Thread is used to send the email in the background so the user does not have to wait for the email to be sent.
     def send_confirmation_email(user):
         msg = Message()
         msg.subject = "Account Creation Confirmation"
         msg.sender = os.environ.get('MAIL_USERNAME')
         msg.recipients = [user]
         msg.body = "This is a confirmation email to confirm that you have created an account with DataDigitizer. If you did not create an account with Grapher, please ignore this email."
-        mail.send(msg)
+        Thread(target=send_async_email, args=(app, msg)).start()
         return "Sent"
 
     def send_mail(user):
@@ -333,9 +352,11 @@ def create_app():
         with app.app_context():
             mail.send(msg)
 
+    #JWT is created so it can be attached to the password reset email
     def get_reset_token(user, expires_sec=1800):
         return jwt.encode({'reset_password': user, 'exp': time() + expires_sec}, key = app.config['SECRET_KEY'])
 
+    #Function used to match the JWT to the user on a database so the password for the respective user can be reset
     def verify_reset_token(token):
         try:
             user = jwt.decode(token, key = app.config['SECRET_KEY'])['reset_password']
